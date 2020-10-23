@@ -1,0 +1,73 @@
+Index: Form1.cs
+===================================================================
+--- Form1.cs	(revision 107)
++++ Form1.cs	(working copy)
+@@ -1478,7 +1478,7 @@
+             double c_ilevel = it.calcFactorA();
+ 
+             double CoeffRescalingTypeA = 300; // Nombre est à ajuster en fonction du nombre de stats qu'on veut sacrifier. Plus il sera grand, moins les stats seront sacrifiées.
+-            if (it.Quality > 4 || it.RandomProperty != 0 || it.Quality < 2)
++            if (it.Quality > 4 || it.RandomProperty != 0 || it.Quality < 2 || it.itemset != 0)
+             {
+                 CoeffRescalingTypeA = 9007199254740991; // Pas d'ajout/suppression de stats/spells pour les items violet.
+                 R_limit = 1;
+@@ -2652,16 +2652,16 @@
+             int step = (int)(steppingValue.Value);
+             foreach (item item in item_list.Values)
+             {
+-                int ilevel_min = 10;   //10
++                int ilevel_min = 60;
+                 int ilevel_max = 60;
+ 
+                 if (item.RequiredLevel % 2 == 1) // impair
+                 {
+-                    ilevel_min = 11;  //11
++                    ilevel_min = 60;
+                     ilevel_max = 60;
+                 }
+ 
+-                if (weaparmors_list.Contains(item) && item.requiredhonorrank == 0 && item.ItemLevel > 1 && ((filter.Items.Count == 0) || filter.Items.Count != 0 && filter.Items.Contains(item.entry)))
++                if (weaparmors_list.Contains(item) && item.itemset!= 0 /*&& !(new List<int>() { 163, 162, 161 }.Contains(item.itemset))*/ && item.RequiredLevel < 60 && item.requiredhonorrank == 0 && item.ItemLevel > 1 && ((filter.Items.Count == 0) || filter.Items.Count != 0 && filter.Items.Contains(item.entry)))
+                 {
+                     DrawLabel(item.entry);
+ 
+@@ -2735,7 +2735,7 @@
+                             it.BuyPrice = item.SellPrice != 0 ? GetPrice(it, (int)expected_ilevel) : 0;
+                             it.SellPrice = item.SellPrice != 0 ? it.BuyPrice / 5 : 0;
+ 
+-                            switch (it.itemset)
++                            /* switch(it.itemset)
+                             {
+                                 case 1: it.description = "Altered The Gladiator"; it.description_loc2 = "Le Gladiateur alteré"; break;
+                                 case 41: it.description = "Altered Dal'Rend's Arms"; it.description_loc2 = "Armes de Dal'Rend alteré"; break;
+@@ -2909,7 +2909,7 @@
+                                 case 549: it.description = "Altered Lieutenant Commander's Investiture"; it.description_loc2 = "Investiture de lieutenant-commandant alteré"; break;
+                                 case 550: it.description = "Altered Lieutenant Commander's Pursuance"; it.description_loc2 = "Accomplissement de lieutenant-commandant alteré"; break;
+                                 case 551: it.description = "Altered Lieutenant Commander's Refuge"; it.description_loc2 = "Refuge de lieutenant-commandant alteré"; break;
+-                            }
++                            }*/
+ 
+                             it.name = it.name.Replace("\"", "\\\"");
+                             it.description = it.description.Replace("\"", "\\\"");
+Index: Item.cs
+===================================================================
+--- Item.cs	(revision 107)
++++ Item.cs	(working copy)
+@@ -721,7 +721,7 @@
+ 
+         internal void Generate()
+         {
+-            outputString += (entry + ",");                          // ENTRY
++            outputString += (parent_entry + ",");                          // ENTRY
+             outputString += (patch + ",");
+             outputString += (_class + ",");
+             outputString += (ssubclass + ",");                      // SUBCLASS
+@@ -854,7 +854,7 @@
+                 outputString += (0 + ",");
+ 
+             outputString += (block + ",");                       // SHIELD BLOCK VALUE
+-            outputString += (0 + ",");                              // itemset
++            outputString += (itemset + ",");                              // itemset
+             outputString += (MaxDurability + ",");
+             outputString += (area + ",");
+             outputString += (Map + ",");
