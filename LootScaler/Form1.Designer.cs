@@ -56,7 +56,6 @@ namespace LootScaler
             this.groupBox1.Controls.Add(this.checkQUEST);
             this.groupBox1.Controls.Add(this.armorCheck);
             this.groupBox1.Controls.Add(this.checkJunk);
-            this.groupBox1.Controls.Add(this.checkDBC);
             this.groupBox1.Controls.Add(this.button1);
             this.groupBox1.Controls.Add(this.consuCheck);
             this.groupBox1.Controls.Add(this.weapCheck);
@@ -71,7 +70,7 @@ namespace LootScaler
             // checkQUEST
             // 
             this.checkQUEST.AutoSize = true;
-            this.checkQUEST.Location = new System.Drawing.Point(178, 65);
+            this.checkQUEST.Location = new System.Drawing.Point(178, 42);
             this.checkQUEST.Name = "checkQUEST";
             this.checkQUEST.Size = new System.Drawing.Size(99, 17);
             this.checkQUEST.TabIndex = 6;
@@ -103,7 +102,7 @@ namespace LootScaler
             // 
             this.checkDBC.AutoSize = true;
             this.checkDBC.Enabled = false;
-            this.checkDBC.Location = new System.Drawing.Point(178, 42);
+            this.checkDBC.Location = new System.Drawing.Point(6, 42);
             this.checkDBC.Name = "checkDBC";
             this.checkDBC.Size = new System.Drawing.Size(48, 17);
             this.checkDBC.TabIndex = 3;
@@ -112,9 +111,9 @@ namespace LootScaler
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(232, 14);
+            this.button1.Location = new System.Drawing.Point(178, 65);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(52, 46);
+            this.button1.Size = new System.Drawing.Size(99, 46);
             this.button1.TabIndex = 2;
             this.button1.Text = "Start";
             this.button1.UseVisualStyleBackColor = true;
@@ -162,7 +161,7 @@ namespace LootScaler
             this.groupBox3.Controls.Add(this.filter);
             this.groupBox3.Controls.Add(this.textBox1);
             this.groupBox3.Enabled = false;
-            this.groupBox3.Location = new System.Drawing.Point(441, 12);
+            this.groupBox3.Location = new System.Drawing.Point(310, 12);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(125, 168);
             this.groupBox3.TabIndex = 12;
@@ -176,7 +175,7 @@ namespace LootScaler
             this.groupBox2.Controls.Add(this.checkDBC);
             this.groupBox2.Location = new System.Drawing.Point(12, 176);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(292, 123);
+            this.groupBox2.Size = new System.Drawing.Size(423, 123);
             this.groupBox2.TabIndex = 13;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Settings";
@@ -184,7 +183,7 @@ namespace LootScaler
             // numericUpDown1
             // 
             this.numericUpDown1.Enabled = false;
-            this.numericUpDown1.Location = new System.Drawing.Point(104, 40);
+            this.numericUpDown1.Location = new System.Drawing.Point(104, 17);
             this.numericUpDown1.Maximum = new decimal(new int[] {
             2,
             0,
@@ -197,7 +196,7 @@ namespace LootScaler
             // checkUpgrade
             // 
             this.checkUpgrade.AutoSize = true;
-            this.checkUpgrade.Location = new System.Drawing.Point(6, 42);
+            this.checkUpgrade.Location = new System.Drawing.Point(6, 19);
             this.checkUpgrade.Name = "checkUpgrade";
             this.checkUpgrade.Size = new System.Drawing.Size(100, 17);
             this.checkUpgrade.TabIndex = 4;
