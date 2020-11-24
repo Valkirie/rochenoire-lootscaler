@@ -42,10 +42,13 @@ namespace LootScaler
             this.filter = new System.Windows.Forms.ListBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.checkUpgrade = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.SuspendLayout();
             // 
             // groupBox1
@@ -164,24 +167,50 @@ namespace LootScaler
             this.groupBox3.Size = new System.Drawing.Size(125, 168);
             this.groupBox3.TabIndex = 12;
             this.groupBox3.TabStop = false;
-            this.groupBox3.Text = "ENTRY FILTER";
+            this.groupBox3.Text = "Entries";
             // 
-            // pictureBox1
+            // groupBox2
             // 
-            this.pictureBox1.BackgroundImage = global::LootScaler.Properties.Resources.WoW_Burning_crusade_icon;
-            this.pictureBox1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.pictureBox1.Location = new System.Drawing.Point(310, 12);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(125, 168);
-            this.pictureBox1.TabIndex = 15;
-            this.pictureBox1.TabStop = false;
+            this.groupBox2.Controls.Add(this.numericUpDown1);
+            this.groupBox2.Controls.Add(this.checkUpgrade);
+            this.groupBox2.Controls.Add(this.checkDBC);
+            this.groupBox2.Location = new System.Drawing.Point(12, 176);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(292, 123);
+            this.groupBox2.TabIndex = 13;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Settings";
+            // 
+            // numericUpDown1
+            // 
+            this.numericUpDown1.Enabled = false;
+            this.numericUpDown1.Location = new System.Drawing.Point(104, 40);
+            this.numericUpDown1.Maximum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(39, 20);
+            this.numericUpDown1.TabIndex = 5;
+            // 
+            // checkUpgrade
+            // 
+            this.checkUpgrade.AutoSize = true;
+            this.checkUpgrade.Location = new System.Drawing.Point(6, 42);
+            this.checkUpgrade.Name = "checkUpgrade";
+            this.checkUpgrade.Size = new System.Drawing.Size(100, 17);
+            this.checkUpgrade.TabIndex = 4;
+            this.checkUpgrade.Text = "Bonus Upgrade";
+            this.checkUpgrade.UseVisualStyleBackColor = true;
+            this.checkUpgrade.CheckedChanged += new System.EventHandler(this.checkUpgrade_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(576, 189);
-            this.Controls.Add(this.pictureBox1);
+            this.ClientSize = new System.Drawing.Size(446, 309);
+            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox3);
             this.Controls.Add(this.groupBox1);
             this.DoubleBuffered = true;
@@ -195,7 +224,9 @@ namespace LootScaler
             this.groupBox1.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -214,6 +245,9 @@ namespace LootScaler
         private CheckBox checkJunk;
         private CheckBox armorCheck;
         private CheckBox checkQUEST;
+        private GroupBox groupBox2;
+        private CheckBox checkUpgrade;
+        private NumericUpDown numericUpDown1;
     }
 }
 

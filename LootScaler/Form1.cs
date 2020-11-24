@@ -53,6 +53,9 @@ namespace LootScaler
         static public int connectionTimeout;
         static public int maxThread;
         static public bool garbageCollector;
+        static public bool BonusUpgrade;
+        static public int BonusUpgradeValue;
+        static public UTF8Encoding UTF8NoPreamble = new UTF8Encoding(false);
 
         static Dictionary<int, Item> item_list = new Dictionary<int, Item>();
         List<Item> done_item_list = new List<Item>();
@@ -490,6 +493,10 @@ namespace LootScaler
 
         private void button1_Click(object sender, EventArgs e)
         {
+            // Settings
+            BonusUpgrade = checkUpgrade.Checked;
+            BonusUpgradeValue = (int)numericUpDown1.Value;
+
             if (weapCheck.Checked)
                 generateScaleGeneric(weapons_list, "weapons");
             if (armorCheck.Checked)
@@ -2086,16 +2093,6 @@ namespace LootScaler
             Console.WriteLine();
         }
 
-        public static int GetIlvlFromLvl(int lvlp, Item it)
-        {
-            if (lvlp < 61)
-                return lvlp + 5 + (it.ItemLevel > 92 ? 0 : (lvlp == 60 ? Math.Max(it.ItemLevel - 65, 0) : 0));
-            else
-                return (it.Quality < (int)ItemQualities.ITEM_QUALITY_RARE ? (lvlp - 60) * 3 + 90 : (lvlp - 60) * 3 + 85 + (lvlp == 70 ? Math.Max(it.ItemLevel - 115, 0) : 0));
-        }
-
-        //public int BonusQuality = 0;
-
         public static int ComputeRequiredLevel(Item it)
         {
             int RequiredLevel = it.sItemLevel - 5;
@@ -2142,6 +2139,7 @@ namespace LootScaler
             if (item.Quality < (int)ItemQualities.ITEM_QUALITY_LEGENDARY) //Pas de changement de spell pour les items de qualité épic et sup (>=4)
                 item.GenerateSpellShortList();
 
+            /*
             //Work On loopmin and max
             item.loopmin = ilevel_min;
             item.loopmax = ilevel_max;
@@ -2188,28 +2186,37 @@ namespace LootScaler
 
             for (int lvlp = 10; lvlp <= 70; lvlp++)
             {
-                int ilvlAdd = GetIlvlFromLvl(lvlp, item);
+                int ilvlAdd = item.GetIlvlFromLvl(lvlp);
                 if (ilvlAdd >= item.loopmin && ilvlAdd <= item.loopmax)
-                    ilvlList.Add(GetIlvlFromLvl(lvlp, item));
+                    ilvlList.Add(item.GetIlvlFromLvl(lvlp));
             }
 
-            ilvlList = ilvlList.Distinct().ToList();
+            ilvlList = ilvlList.Distinct().ToList(); */
 
             // Work on bonus armor
             int expect_armor = GetArmor(item, item.ItemLevel);
             item.bonus_armor = Math.Max(item.armor - expect_armor, 0);
 
+            int itBonusQuality = (BonusUpgrade ? BonusUpgradeValue : 0);
+
+            if (item.Quality >= (int)ItemQualities.ITEM_QUALITY_EPIC)
+                itBonusQuality = 0; // Do not create Legendary, Artifacts
+            else if (item.Quality <= (int)ItemQualities.ITEM_QUALITY_NORMAL)
+                itBonusQuality = 0; // Do not upgrade Poor, Common
+
             // Main loops on bonus quality and ilvl
-            for (item.BonusQuality = 0; item.BonusQuality <= 0; item.BonusQuality++)
+            for (int BonusQuality = 0; BonusQuality <= itBonusQuality; BonusQuality++)
             {
-                foreach (int ilevel in ilvlList) // for (int ilevel = item.loopmin; ilevel <= item.loopmax; ilevel++)
+                int itQuality = item.Quality + BonusQuality;
+
+                for (int lvlp = 10; lvlp <= 70; lvlp++) //foreach (int ilevel in ilvlList) // for (int ilevel = item.loopmin; ilevel <= item.loopmax; ilevel++)
                 {
                     Item it = new Item(item);
 
-                    //Work on bonusQuality
-                    it.Quality = Math.Min(item.Quality + item.BonusQuality, 5); //On ne crée pas d'item artifact
-                    if (item.BonusQuality == 1 && it.Quality > 4)   //Il faut mettre l'enchant ID à 0 pour les items legendaires et artifacts
-                        it.DisenchantID = 0;
+                    it.Quality = itQuality;
+
+                    /* if (item.BonusQuality == 1 && it.Quality > 4)   //Il faut mettre l'enchant ID à 0 pour les items legendaires et artifacts
+                        it.DisenchantID = 0; */
 
                     it.name = it.name.Replace("\"", "\\\"");
                     it.description = it.description.Replace("\"", "\\\"");
@@ -2219,11 +2226,11 @@ namespace LootScaler
                     if (it.description_loc2 != null)
                         it.description_loc2 = it.description_loc2.Replace("\"", "\\\"");
 
-                    it.sItemLevel = ilevel;
-                    it.RequiredLevel = ComputeRequiredLevel(it);
-                    item.RequiredLevel = ComputeRequiredLevel(item);
+                    it.sItemLevel = it.GetIlvlFromLvl(lvlp, BonusQuality); //ilevel;
+                    it.RequiredLevel = lvlp; // ComputeRequiredLevel(it);
+                    item.RequiredLevel = lvlp; //ComputeRequiredLevel(item);
 
-                    it.entry = getScaledId(item.entry, item.BonusQuality, ilevel); // 0 : Bonus Quality
+                    it.entry = getScaledId(item.entry, item.BonusQuality, it.sItemLevel); // 0 : Bonus Quality
                     it.BuyPrice = item.SellPrice != 0 ? GetPrice(it, item.RequiredLevel) : 0;
                     it.SellPrice = it.BuyPrice / 5;
 
@@ -2231,9 +2238,6 @@ namespace LootScaler
 
                     // itemset
                     it.itemset = it.sItemLevel >= item.ItemLevel ? item.itemset : 0;
-
-                    // todo: socket scaling ?
-
 
                     // Last step
                     it.Generate();
@@ -2342,6 +2346,11 @@ namespace LootScaler
                     textBox1.Text = "";
                 }
             }
+        }
+
+        private void checkUpgrade_CheckedChanged(object sender, EventArgs e)
+        {
+            numericUpDown1.Enabled = checkUpgrade.Checked;
         }
     }
 

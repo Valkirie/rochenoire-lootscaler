@@ -239,6 +239,21 @@ namespace LootScaler
             }
         }
 
+        public int GetIlvlFromLvl(int lvlp, int BonusQuality = 0)
+        {
+            int ilevel;
+
+            if (lvlp < 61)
+                ilevel = lvlp + 5 + (ItemLevel > 92 ? 0 : (lvlp == 60 ? Math.Max(ItemLevel - 65, 0) : 0));
+            else
+                ilevel = (Quality < (int)ItemQualities.ITEM_QUALITY_RARE ? (lvlp - 60) * 3 + 90 : (lvlp - 60) * 3 + 85 + (lvlp == 70 ? Math.Max(ItemLevel - 115, 0) : 0));
+
+            // BonusQuality effect on ilevel
+            ilevel += BonusQuality * 10;
+
+            return ilevel;
+        }
+
         public static List<Dictionary<int, ITEM_MOD>> spell_types = new List<Dictionary<int, ITEM_MOD>>
         {
             new Dictionary<int,ITEM_MOD>() // spell type 0 (0 : 29) : Misc / Handled
