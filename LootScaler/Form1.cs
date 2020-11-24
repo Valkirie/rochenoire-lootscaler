@@ -2242,50 +2242,40 @@ namespace LootScaler
             }
 
             //Work on writing item in files
-            UTF8Encoding UTF8NoPreamble = new UTF8Encoding(false);
-            using (StreamWriter outputFile = new StreamWriter(new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "item_template", item.entry + ".sql"), FileMode.Create), UTF8NoPreamble))
+            if (item.wip_item_list.Count != 0)
             {
-                Item last = item.wip_item_list.OrderBy(b => b.entry).Last();
-                outputFile.Write("REPLACE INTO item_template VALUES ");
-
-                foreach (Item it in item.wip_item_list)
+                using (StreamWriter outputFile = new StreamWriter(new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "item_template", item.entry + ".sql"), FileMode.Create), UTF8NoPreamble))
                 {
-                    outputFile.Write(it.ToString());
-                    if (it.Equals(last))
-                        outputFile.Write(";\n");
-                    else
-                        outputFile.Write(",\n");
-                }
+                    Item last = item.wip_item_list.OrderBy(b => b.entry).Last();
+                    outputFile.Write("REPLACE INTO item_template VALUES ");
 
-                if (item.enchantments_ori.Count > 0)
-                {
-                    outputFile.Write("REPLACE INTO item_enchantment_template VALUES ");
                     foreach (Item it in item.wip_item_list)
                     {
-                        foreach (Enchantment ench in it.enchantments_new)
-                        {
-                            Enchantment last_ench = it.enchantments_new.Last();
-                            if (it.Equals(last) && ench.Equals(last_ench))
-                                outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + ");\n");
-                            else
-                                outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + "),");
-                        }
-                    }
-                }
-
-                /* if (item.name_loc2 != null && item.description_loc2 != null)
-                {
-                    outputFile.Write("REPLACE INTO locales_item (entry,name_loc2,description_loc2) VALUES ");
-                    foreach (Item it in item.wip_item_list)
-                    {
-                        outputFile.Write("(" + it.entry + ",\"" + it.name_loc2 + "\",\"" + it.description_loc2 + "\")");
+                        outputFile.Write(it.ToString());
                         if (it.Equals(last))
                             outputFile.Write(";\n");
                         else
-                            outputFile.Write(",");
+                            outputFile.Write(",\n");
                     }
-                } */
+
+                    if (item.enchantments_ori.Count > 0)
+                    {
+                        outputFile.Write("REPLACE INTO item_enchantment_template VALUES ");
+                        foreach (Item it in item.wip_item_list)
+                        {
+                            foreach (Enchantment ench in it.enchantments_new)
+                            {
+                                Enchantment last_ench = it.enchantments_new.Last();
+                                if (it.Equals(last) && ench.Equals(last_ench))
+                                    outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + ");\n");
+                                else
+                                    outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + "),");
+                            }
+                        }
+                    }
+                }
             }
+
             Console.Write(".");
             threadcount--;
         }
