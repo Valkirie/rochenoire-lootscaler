@@ -75,6 +75,9 @@ namespace LootScaler
         static public Dictionary<int, Enchantment> Enchantment_list = new Dictionary<int, Enchantment>();
         static public Dictionary<int, socketBonus> socketBonus_list = new Dictionary<int, socketBonus>();
 
+        const int ilevel_max = 180;   // Ne jamais toucher !  180  ! Never Change this value !
+        const int quality_max = 2;    // Ne jamais toucher !  2    ! Never Change this value !
+
         private void Form1_Load(object sender, EventArgs e)
         {
             CorrectNumberFormat();
@@ -1991,11 +1994,6 @@ namespace LootScaler
             //BonusQuality vaut 0 ou 1 si on veut garder la qualité de l'item identique ou la booster de 1.
             return (41000 + entry * quality_max * ilevel_max + BonusQuality * ilevel_max + ilevel);  //NEVER EVER CHANGE THIS FUNCTION.
         }
-
-        static int ilevel_max = 180;   // Ne jamais toucher !  180  ! Never Change this value !
-        static int ilevel_min = 10;    // Ne jamais toucher !  12   ! Never Change this value !
-        static int quality_max = 2;    // Ne jamais toucher !  2    ! Never Change this value !
-        static int BonusLvlHero = 3;
 
         public void generateDBC()
         {
