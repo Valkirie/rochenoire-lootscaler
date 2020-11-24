@@ -767,13 +767,13 @@ namespace LootScaler
             double average_e = 0;
 
             foreach (Enchantment e in item.enchantments_ori)
-                average_e += e.value[item.Quality <= 3 ? 0 : 1];
+                average_e += e.value[item.Quality <= (int)ItemQualities.ITEM_QUALITY_RARE ? 0 : 1];
 
             double average_value = Math.Max((average_e / item.enchantments_ori.Count()) * coeffR, 1);
 
             foreach (Enchantment e in item.enchantments_ori)
             {
-                double current_e = e.value[item.Quality <= 3 ? 0 : 1];
+                double current_e = e.value[item.Quality <= (int)ItemQualities.ITEM_QUALITY_RARE ? 0 : 1];
                 double current_value = Math.Max(current_e * coeffR, 1); // valeur recherchée
 
                 double lookup_value = current_value < average_value ? average_value - (current_value * MAX_RPROPERTY_DIF) : average_value + (current_value * MAX_RPROPERTY_DIF);
@@ -784,7 +784,7 @@ namespace LootScaler
 
                 foreach (Enchantment l in Enchantment_list.Values.Where(a => a.family == e.family))
                 {
-                    double l_value = l.value[item.Quality <= 3 ? 0 : 1];
+                    double l_value = l.value[item.Quality <= (int)ItemQualities.ITEM_QUALITY_RARE ? 0 : 1];
                     double diff_value = Math.Abs(l_value - lookup_value);
                     double diff_test2 = diff_value / lookup_value;
 
@@ -888,7 +888,7 @@ namespace LootScaler
                     break;
             }
 
-            if (it.Quality > 3)
+            if (it.Quality > (int)ItemQualities.ITEM_QUALITY_RARE)
                 expected_armor *= 1.25;
 
             return Convert.ToInt32(expected_armor);
@@ -920,21 +920,21 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.10;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 armor *= (it_ilevel < 93 ? 1.20 : 1.375);
                                 break;
                         }
@@ -1103,7 +1103,7 @@ namespace LootScaler
             {
                 if (new[] { 0, 4, 7, 13, 15 }.Contains(it_subclass)) // one handed + fist + dagger OK
                 {
-                    if (it_quality == 0)
+                    if (it_quality == (int)ItemQualities.ITEM_QUALITY_POOR)
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1119,7 +1119,7 @@ namespace LootScaler
                         dps *= 0.65;
 
                     }
-                    else if (it_quality == 1)
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_NORMAL)
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1134,7 +1134,7 @@ namespace LootScaler
 
                         dps *= 0.90;
                     }
-                    else if (it_quality == 2) // green
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1147,7 +1147,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 0.6333 * it_ilevel - 10.7;
                     }
-                    else if (it_quality == 3) // blue
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue
                     {
                         if (it_ilevel < 32)
                             dps = 0.518 * it_ilevel + 3.14;
@@ -1160,7 +1160,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 0.7488 * it_ilevel - 14.4905;
                     }
-                    else if (it_quality >= 4) // epic
+                    else if (it_quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) // epic
                     {
                         if (it_ilevel < 92)
                             dps = 1.466769 + 1.092133 * it_ilevel - 0.0133254145 * it_ilevel * it_ilevel + 0.00011351298 * it_ilevel * it_ilevel * it_ilevel;
@@ -1172,7 +1172,7 @@ namespace LootScaler
                 }
                 else if (new[] { 1, 5, 8, 10, 17, 20 }.Contains(it_subclass)) // two handed + staff + spear + fishing pole OK
                 {
-                    if (it_quality == 0)
+                    if (it_quality == (int)ItemQualities.ITEM_QUALITY_POOR)
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1188,7 +1188,7 @@ namespace LootScaler
                         dps *= 1.30 * 0.65;
 
                     }
-                    else if (it_quality == 1)
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_NORMAL)
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1203,7 +1203,7 @@ namespace LootScaler
 
                         dps *= 1.30 * 0.90;
                     }
-                    else if (it_quality == 2) // green
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1218,7 +1218,7 @@ namespace LootScaler
 
                         dps *= 1.30;
                     }
-                    else if (it_quality == 3) // blue
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue
                     {
                         if (it_ilevel < 72)   //Vanilla
                             dps = 0.86 * it_ilevel;
@@ -1227,7 +1227,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 1.3 * (0.7488 * it_ilevel - 14.4905);
                     }
-                    else if (it_quality >= 4) // epic
+                    else if (it_quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) // epic
                     {
                         if (it_ilevel < 92)
                             dps = 1.305 * (1.466769 + 1.092133 * it_ilevel - 0.0133254145 * it_ilevel * it_ilevel + 0.00011351298 * it_ilevel * it_ilevel * it_ilevel);
@@ -1240,7 +1240,7 @@ namespace LootScaler
                 }
                 else if (new[] { 2, 3, 18, 16 }.Contains(it_subclass)) // ranged (bow, gun, crossbow) & thrown (too many differents cases for thrown...)
                 {
-                    if (it_quality == 0)
+                    if (it_quality == (int)ItemQualities.ITEM_QUALITY_POOR)
                     {
                         if (it_ilevel < 37)
                             dps = 0.407 * it_ilevel - 0.142;
@@ -1254,7 +1254,7 @@ namespace LootScaler
                         dps *= 0.65;
 
                     }
-                    else if (it_quality == 1)
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_NORMAL)
                     {
                         if (it_ilevel < 37)
                             dps = 0.407 * it_ilevel - 0.142;
@@ -1267,7 +1267,7 @@ namespace LootScaler
 
                         dps *= 0.90;
                     }
-                    else if (it_quality == 2) // green
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
                     {
                         if (it_ilevel < 37)
                             dps = 0.407 * it_ilevel - 0.142;
@@ -1279,7 +1279,7 @@ namespace LootScaler
                             dps = 0.5 * it_ilevel + 1.4;
 
                     }
-                    else if (it_quality == 3) // blue 
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue 
                     {
                         if (it_ilevel < 30)
                             dps = 0.41 * it_ilevel + 2.33;
@@ -1290,7 +1290,7 @@ namespace LootScaler
                         else if (it_ilevel >= 79) // tbc
                             dps = 0.58 * it_ilevel - 0.3;
                     }
-                    else if (it_quality >= 4) // epic
+                    else if (it_quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) // epic
                     {
                         if (it_ilevel < 88)
                             dps = 2.38 + 0.426 * it_ilevel + 0.00807 * it_ilevel * it_ilevel - 0.000187 * it_ilevel * it_ilevel * it_ilevel + 0.00000135 * it_ilevel * it_ilevel * it_ilevel * it_ilevel;
@@ -1304,7 +1304,7 @@ namespace LootScaler
                 // }
                 else if (new[] { 19 }.Contains(it_subclass)) // wand OK
                 {
-                    if (it_quality == 0)
+                    if (it_quality == (int)ItemQualities.ITEM_QUALITY_POOR)
                     {
                         if (it_ilevel < 85)
                             dps = 0.372 + 0.668 * it_ilevel + 0.00338 * it_ilevel * it_ilevel;
@@ -1316,7 +1316,7 @@ namespace LootScaler
                         dps *= 0.65;
 
                     }
-                    else if (it_quality == 1)
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_NORMAL)
                     {
                         if (it_ilevel < 85)
                             dps = 0.372 + 0.668 * it_ilevel + 0.00338 * it_ilevel * it_ilevel;
@@ -1327,7 +1327,7 @@ namespace LootScaler
 
                         dps *= 0.90;
                     }
-                    else if (it_quality == 2) // green
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
                     {
                         if (it_ilevel < 85)
                             dps = 0.372 + 0.668 * it_ilevel + 0.00338 * it_ilevel * it_ilevel;
@@ -1336,7 +1336,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 1.77 * (0.6333 * it_ilevel - 10.7);
                     }
-                    else if (it_quality == 3) // blue
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue
                     {
                         if (it_ilevel < 80)   //Vanilla
                             dps = 4.93 + 0.83 * it_ilevel - 0.00346 * it_ilevel * it_ilevel + 0.0000822 * it_ilevel * it_ilevel * it_ilevel;
@@ -1345,7 +1345,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 1.8 * (0.7488 * it_ilevel - 14.4905);
                     }
-                    else if (it_quality >= 4) // epic
+                    else if (it_quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) // epic
                     {
                         if (it_ilevel < 60)
                             dps = 1.15 * (4.93 + 0.83 * it_ilevel - 0.00346 * it_ilevel * it_ilevel + 0.0000822 * it_ilevel * it_ilevel * it_ilevel);
@@ -1737,7 +1737,7 @@ namespace LootScaler
                 it.SetItemResValue(ResName, (int)(ResValue * coeffR));
             }
 
-            if (it.Quality > 1 && it.Quality < 6 && (it._class == 4 || it._class == 2))
+            if (it.Quality > (int)ItemQualities.ITEM_QUALITY_NORMAL && it.Quality < (int)ItemQualities.ITEM_QUALITY_ARTIFACT && (it._class == 4 || it._class == 2))
             {
                 // Doing work on Pathing
                 double coeffK = 0;
@@ -2091,7 +2091,7 @@ namespace LootScaler
             if (lvlp < 61)
                 return lvlp + 5 + (it.ItemLevel > 92 ? 0 : (lvlp == 60 ? Math.Max(it.ItemLevel - 65, 0) : 0));
             else
-                return (it.Quality < 3 ? (lvlp - 60) * 3 + 90 : (lvlp - 60) * 3 + 85 + (lvlp == 70 ? Math.Max(it.ItemLevel - 115, 0) : 0));
+                return (it.Quality < (int)ItemQualities.ITEM_QUALITY_RARE ? (lvlp - 60) * 3 + 90 : (lvlp - 60) * 3 + 85 + (lvlp == 70 ? Math.Max(it.ItemLevel - 115, 0) : 0));
         }
 
         //public int BonusQuality = 0;
@@ -2101,21 +2101,21 @@ namespace LootScaler
             int RequiredLevel = it.sItemLevel - 5;
             int ilevel = it.sItemLevel;
 
-            if (it.Quality <= 2) // green
+            if (it.Quality <= (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
             {
                 if (ilevel <= 70)
                     RequiredLevel = ilevel - 5; // vanilla
                 else
                     RequiredLevel = Math.Min((ilevel - 90) / 3 + 60, 70); // tbc
             }
-            else if (it.Quality == 3) // blue
+            else if (it.Quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue
             {
                 if (ilevel <= 80)
                     RequiredLevel = Math.Min(ilevel - 5, 60); // vanilla
                 else
                     RequiredLevel = Math.Min((ilevel - 85) / 3 + 60, 70); // tbc
             }
-            else if (it.Quality >= 4) //purple/ orange / red
+            else if (it.Quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) //purple/ orange / red
             {
                 if (ilevel <= 93)
                     RequiredLevel = Math.Min(ilevel - 5, 60); // vanilla
@@ -2136,10 +2136,10 @@ namespace LootScaler
             item.ConvertSpellInModRating();
 
             if (item.patch <= (int)WowPatch.WOW_PATCH_112)  //Pas de Pathing pour les items TBC 
-                if (!(item.ItemLevel >= 66 && item.ItemLevel <= 92 && item.Quality > 3))  //Pas de Pathing pour les items de raid vanila
+                if (!(item.ItemLevel >= 66 && item.ItemLevel <= 92 && item.Quality > (int)ItemQualities.ITEM_QUALITY_RARE))  //Pas de Pathing pour les items de raid vanila
                     item.GeneratePathing();
 
-            if (item.Quality <= 4) //Pas de changement de spell pour les items de qualité épic et sup (>=4)
+            if (item.Quality < (int)ItemQualities.ITEM_QUALITY_LEGENDARY) //Pas de changement de spell pour les items de qualité épic et sup (>=4)
                 item.GenerateSpellShortList();
 
             //Work On loopmin and max
@@ -2602,6 +2602,17 @@ namespace LootScaler
         WOW_PATCH_230 = 14,
         WOW_PATCH_240 = 15
     }
+
+    public enum ItemQualities
+    {
+        ITEM_QUALITY_POOR = 0,                 // GREY
+        ITEM_QUALITY_NORMAL = 1,                 // WHITE
+        ITEM_QUALITY_UNCOMMON = 2,                 // GREEN
+        ITEM_QUALITY_RARE = 3,                 // BLUE
+        ITEM_QUALITY_EPIC = 4,                 // PURPLE
+        ITEM_QUALITY_LEGENDARY = 5,                 // ORANGE
+        ITEM_QUALITY_ARTIFACT = 6                  // LIGHT YELLOW
+    };
 
     public enum Flagsenum
     {
