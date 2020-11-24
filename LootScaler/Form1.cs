@@ -75,8 +75,9 @@ namespace LootScaler
         static public Dictionary<int, Enchantment> Enchantment_list = new Dictionary<int, Enchantment>();
         static public Dictionary<int, socketBonus> socketBonus_list = new Dictionary<int, socketBonus>();
 
-        const int ilevel_max = 180;   // Ne jamais toucher !  180  ! Never Change this value !
-        const int quality_max = 2;    // Ne jamais toucher !  2    ! Never Change this value !
+        const int MIN_ENTRY_SCALE = 41000;      // Ne jamais toucher !  180  ! Never Change this value !
+        const int MAX_ILEVEL_SCALE = 180;       // Ne jamais toucher !  180  ! Never Change this value !
+        const int MAX_QUALITY_SCALE = 3;        // Ne jamais toucher !  2    ! Never Change this value !
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -251,7 +252,7 @@ namespace LootScaler
             Console.WriteLine("Loading item_template...");
 
 
-            cmd = new MySqlCommand("SELECT i.entry, i.patch, i.class, i.subclass, i.name, i.displayid, i.Quality, i.Flags, i.BuyCount, i.BuyPrice, i.SellPrice, i.InventoryType, i.AllowableClass, i.AllowableRace, i.ItemLevel, i.RequiredLevel, i.RequiredSkill, i.RequiredSkillRank, i.requiredspell, i.requiredhonorrank, i.RequiredCityRank, i.RequiredReputationFaction, i.RequiredReputationRank, i.maxcount, i.stackable, i.ContainerSlots, i.stat_type1, i.stat_value1, i.stat_type2, i.stat_value2, i.stat_type3, i.stat_value3, i.stat_type4, i.stat_value4, i.stat_type5, i.stat_value5, i.stat_type6, i.stat_value6, i.stat_type7, i.stat_value7, i.stat_type8, i.stat_value8, i.stat_type9, i.stat_value9, i.stat_type10, i.stat_value10, i.dmg_min1, i.dmg_max1, i.dmg_type1, i.dmg_min2, i.dmg_max2, i.dmg_type2, i.dmg_min3, i.dmg_max3, i.dmg_type3, i.dmg_min4, i.dmg_max4, i.dmg_type4, i.dmg_min5, i.dmg_max5, i.dmg_type5, i.armor, i.holy_res, i.fire_res, i.nature_res, i.frost_res, i.shadow_res, i.arcane_res, i.delay, i.ammo_type, i.RangedModRange, i.spellid_1, i.spelltrigger_1, i.spellcharges_1, i.spellppmRate_1, i.spellcooldown_1, i.spellcategory_1, i.spellcategorycooldown_1, i.spellid_2, i.spelltrigger_2, i.spellcharges_2, i.spellppmRate_2, i.spellcooldown_2, i.spellcategory_2, i.spellcategorycooldown_2, i.spellid_3, i.spelltrigger_3, i.spellcharges_3, i.spellppmRate_3, i.spellcooldown_3, i.spellcategory_3, i.spellcategorycooldown_3, i.spellid_4, i.spelltrigger_4, i.spellcharges_4, i.spellppmRate_4, i.spellcooldown_4, i.spellcategory_4, i.spellcategorycooldown_4, i.spellid_5, i.spelltrigger_5, i.spellcharges_5, i.spellppmRate_5, i.spellcooldown_5, i.spellcategory_5, i.spellcategorycooldown_5, i.bonding, i.description, i.PageText, i.LanguageID, i.PageMaterial, i.startquest, i.lockid, i.Material, i.sheath, i.RandomProperty, i.RandomSuffix, i.block, i.itemset, i.MaxDurability, i.area, i.Map, i.BagFamily, i.TotemCategory, i.socketColor_1, i.socketContent_1, i.socketColor_2, i.socketContent_2, i.socketColor_3, i.socketContent_3, i.socketBonus, i.GemProperties, i.RequiredDisenchantSkill, i.ArmorDamageModifier, i.ScriptName, i.DisenchantID, i.FoodType, i.minMoneyLoot, i.maxMoneyLoot, i.Duration, i.ExtraFlags FROM item_template i WHERE i.entry < 41000 LIMIT 99999999", connection);
+            cmd = new MySqlCommand("SELECT i.entry, i.patch, i.class, i.subclass, i.name, i.displayid, i.Quality, i.Flags, i.BuyCount, i.BuyPrice, i.SellPrice, i.InventoryType, i.AllowableClass, i.AllowableRace, i.ItemLevel, i.RequiredLevel, i.RequiredSkill, i.RequiredSkillRank, i.requiredspell, i.requiredhonorrank, i.RequiredCityRank, i.RequiredReputationFaction, i.RequiredReputationRank, i.maxcount, i.stackable, i.ContainerSlots, i.stat_type1, i.stat_value1, i.stat_type2, i.stat_value2, i.stat_type3, i.stat_value3, i.stat_type4, i.stat_value4, i.stat_type5, i.stat_value5, i.stat_type6, i.stat_value6, i.stat_type7, i.stat_value7, i.stat_type8, i.stat_value8, i.stat_type9, i.stat_value9, i.stat_type10, i.stat_value10, i.dmg_min1, i.dmg_max1, i.dmg_type1, i.dmg_min2, i.dmg_max2, i.dmg_type2, i.dmg_min3, i.dmg_max3, i.dmg_type3, i.dmg_min4, i.dmg_max4, i.dmg_type4, i.dmg_min5, i.dmg_max5, i.dmg_type5, i.armor, i.holy_res, i.fire_res, i.nature_res, i.frost_res, i.shadow_res, i.arcane_res, i.delay, i.ammo_type, i.RangedModRange, i.spellid_1, i.spelltrigger_1, i.spellcharges_1, i.spellppmRate_1, i.spellcooldown_1, i.spellcategory_1, i.spellcategorycooldown_1, i.spellid_2, i.spelltrigger_2, i.spellcharges_2, i.spellppmRate_2, i.spellcooldown_2, i.spellcategory_2, i.spellcategorycooldown_2, i.spellid_3, i.spelltrigger_3, i.spellcharges_3, i.spellppmRate_3, i.spellcooldown_3, i.spellcategory_3, i.spellcategorycooldown_3, i.spellid_4, i.spelltrigger_4, i.spellcharges_4, i.spellppmRate_4, i.spellcooldown_4, i.spellcategory_4, i.spellcategorycooldown_4, i.spellid_5, i.spelltrigger_5, i.spellcharges_5, i.spellppmRate_5, i.spellcooldown_5, i.spellcategory_5, i.spellcategorycooldown_5, i.bonding, i.description, i.PageText, i.LanguageID, i.PageMaterial, i.startquest, i.lockid, i.Material, i.sheath, i.RandomProperty, i.RandomSuffix, i.block, i.itemset, i.MaxDurability, i.area, i.Map, i.BagFamily, i.TotemCategory, i.socketColor_1, i.socketContent_1, i.socketColor_2, i.socketContent_2, i.socketColor_3, i.socketContent_3, i.socketBonus, i.GemProperties, i.RequiredDisenchantSkill, i.ArmorDamageModifier, i.ScriptName, i.DisenchantID, i.FoodType, i.minMoneyLoot, i.maxMoneyLoot, i.Duration, i.ExtraFlags FROM item_template i WHERE i.entry < " + MIN_ENTRY_SCALE + " LIMIT 99999999", connection);
             cmd.CommandTimeout = connectionTimeout;
             dataReader = cmd.ExecuteReader();
 
@@ -435,7 +436,7 @@ namespace LootScaler
                 }
                 dataReader.Close();
 
-                cmd = new MySqlCommand("SELECT l.entry, l.name_loc2, l.description_loc2 FROM locales_item l WHERE l.entry < 41000", connection);
+                cmd = new MySqlCommand("SELECT l.entry, l.name_loc2, l.description_loc2 FROM locales_item l WHERE l.entry < " + MIN_ENTRY_SCALE, connection);
                 cmd.CommandTimeout = connectionTimeout;
                 dataReader = cmd.ExecuteReader();
 
@@ -530,9 +531,9 @@ namespace LootScaler
                     if (weapCheck.Checked)
                     {
                         outputFile.WriteLine("DELETE FROM item_loot_scale;");
-                        outputFile.WriteLine("DELETE FROM item_template WHERE entry > 41000;");
-                        outputFile.WriteLine("DELETE FROM locales_item WHERE entry > 41000;");
-                        outputFile.WriteLine("DELETE FROM item_enchantment_template WHERE entry > 41000;");
+                        outputFile.WriteLine("DELETE FROM item_template WHERE entry > " + MIN_ENTRY_SCALE + ";");
+                        outputFile.WriteLine("DELETE FROM locales_item WHERE entry > " + MIN_ENTRY_SCALE + ";");
+                        outputFile.WriteLine("DELETE FROM item_enchantment_template WHERE entry > " + MIN_ENTRY_SCALE + ";");
                     }
 
                     if (consuCheck.Checked)
@@ -1992,7 +1993,7 @@ namespace LootScaler
         public static int getScaledId(int entry, int BonusQuality, int ilevel)
         {
             //BonusQuality vaut 0 ou 1 si on veut garder la qualité de l'item identique ou la booster de 1.
-            return (41000 + entry * quality_max * ilevel_max + BonusQuality * ilevel_max + ilevel);  //NEVER EVER CHANGE THIS FUNCTION.
+            return (MIN_ENTRY_SCALE + entry * MAX_QUALITY_SCALE * MAX_ILEVEL_SCALE + BonusQuality * MAX_ILEVEL_SCALE + ilevel);  //NEVER EVER CHANGE THIS FUNCTION.
         }
 
         public void generateDBC()
@@ -2140,7 +2141,7 @@ namespace LootScaler
             /*
             //Work On loopmin and max
             item.loopmin = ilevel_min;
-            item.loopmax = ilevel_max;
+            item.loopmax = MAX_ILEVEL_SCALE;
 
             switch (item.Quality)   //Filter to reduce the number of items scaled. 
             {
@@ -2177,7 +2178,7 @@ namespace LootScaler
             }
 
             item.loopmin = Math.Max(ilevel_min, item.loopmin);
-            item.loopmax = Math.Min(ilevel_max, item.loopmax);
+            item.loopmax = Math.Min(MAX_ILEVEL_SCALE, item.loopmax);
 
             // work on ilvl list
             List<int> ilvlList = new List<int>();
