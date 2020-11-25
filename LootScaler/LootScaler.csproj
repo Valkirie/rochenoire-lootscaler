@@ -136,7 +136,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
