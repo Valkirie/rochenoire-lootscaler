@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Globalization;
 
 namespace LootScaler
 {
@@ -302,12 +298,12 @@ namespace LootScaler
 
         public int IsBearWeapon(int IDitem)
         {
-            List<int> BearWeapList = new List<int>() { 9452, 1317, 15259, 3227, 880, 9603, 12969, 12969, 11921, 12776,9408, 1722, 12251, 943, 18420, 19944, 19358, 12252, 18376, 13167, 19357};
-           
-			if (BearWeapList.Contains(IDitem))
-				return 1;
-			else
-				return 0;
+            List<int> BearWeapList = new List<int>() { 9452, 1317, 15259, 3227, 880, 9603, 12969, 12969, 11921, 12776, 9408, 1722, 12251, 943, 18420, 19944, 19358, 12252, 18376, 13167, 19357 };
+
+            if (BearWeapList.Contains(IDitem))
+                return 1;
+            else
+                return 0;
         }
 
         //Pathing Main Function
@@ -952,7 +948,7 @@ namespace LootScaler
 
             // spells_ori = item.spells_ori;
             // foreach (Spell sp in item.spells_ori)
-            for(int i = 0; i < item.spells_ori.Count(); i++)
+            for (int i = 0; i < item.spells_ori.Count(); i++)
                 spells_ori[i] = (item.spells_ori[i]);
 
             // damages_ori = item.damages_ori;
@@ -1052,8 +1048,9 @@ namespace LootScaler
         /// Set an ITEM_MOD value to the item.
         /// </summary>
         public void SetItemModValue(int stat, int value)
-        {if (value != 0)
-            { 
+        {
+            if (value != 0)
+            {
                 if (stat_type1 == stat)
                     stat_value1 = value;
                 else if (stat_type2 == stat)
@@ -1158,7 +1155,7 @@ namespace LootScaler
         /// </summary>
         public int getItemResValue(string res)
         {
-            switch(res)
+            switch (res)
             {
                 case "FIRE":
                     return fire_res;
@@ -1363,7 +1360,7 @@ namespace LootScaler
             outputString += (ammo_type + ",");
             outputString += (RangedModRange + ",");
 
-            for(int i = 0; i < 5; i++)
+            for (int i = 0; i < 5; i++)
             {
                 outputString += ((spells[i] != null ? spells[i].spellID : 0) + ",");
                 outputString += ((spells[i] != null ? spells[i].spelltrigger : 0) + ",");
@@ -1411,7 +1408,7 @@ namespace LootScaler
             outputString += (socketColor_3 + ","); //TBC
             outputString += (socketContent_3 + ","); //TBC
 
-            if(socketBonus_new != null)
+            if (socketBonus_new != null)
                 outputString += (socketBonus_new.id.ToString() + ","); //TBC
             else
                 outputString += ("0,"); //TBC
@@ -1462,28 +1459,28 @@ namespace LootScaler
             public int Mode = -1;
             public int Value = 0;
         }
-		
+
         public RATING GetModRating(Spell mainspell)
         {
             RATING rate = new RATING();
 
-            switch(mainspell.spelltype)
+            switch (mainspell.spelltype)
             {
-                case "DEFENSE":     rate.Mode = 12; break;
-                case "DODGE":       rate.Mode = 13; break;
-                case "PARRY":       rate.Mode = 14; break;
-                case "BLOCK":       rate.Mode = 15; break;
-                case "RANGEDHIT":   rate.Mode = 17; break;
-                case "SPELLHIT":    rate.Mode = 18; break;
-                case "RANGEDCRIT":  rate.Mode = 20; break;
-                case "SPELLCRIT":   rate.Mode = 21; break;
-                case "HASTMELEE":   rate.Mode = 28; break;
+                case "DEFENSE": rate.Mode = 12; break;
+                case "DODGE": rate.Mode = 13; break;
+                case "PARRY": rate.Mode = 14; break;
+                case "BLOCK": rate.Mode = 15; break;
+                case "RANGEDHIT": rate.Mode = 17; break;
+                case "SPELLHIT": rate.Mode = 18; break;
+                case "RANGEDCRIT": rate.Mode = 20; break;
+                case "SPELLCRIT": rate.Mode = 21; break;
+                case "HASTMELEE": rate.Mode = 28; break;
                 case "HASTERANGED": rate.Mode = 29; break;
-                case "HASTESPELL":  rate.Mode = 30; break;
-                case "HIT":         rate.Mode = 31; break;
-                case "CRIT":        rate.Mode = 32; break;
-                case "RESILIENCE":  rate.Mode = 35; break;
-                case "EXPERTISE":   rate.Mode = 37; break;
+                case "HASTESPELL": rate.Mode = 30; break;
+                case "HIT": rate.Mode = 31; break;
+                case "CRIT": rate.Mode = 32; break;
+                case "RESILIENCE": rate.Mode = 35; break;
+                case "EXPERTISE": rate.Mode = 37; break;
             }
 
             rate.Value = mainspell.GetPoints();
@@ -1494,18 +1491,18 @@ namespace LootScaler
         public void ConvertSpellInModRating()
         {
             // TO DO : Optimize !!
-			List<Spell> spells_Remove = new List<Spell>();
+            List<Spell> spells_Remove = new List<Spell>();
 
             foreach (Spell mainspell in spells_ori.Where(a => a != null))
             {
                 RATING SpellRating = GetModRating(mainspell);
-                if  (SpellRating.Mode != -1)
+                if (SpellRating.Mode != -1)
                 {
                     SetItemModValue(SpellRating.Mode, SpellRating.Value);
                     spells_Remove.Add(mainspell);
                 }
             }
-			
+
             foreach (Spell mainspell in spells_Remove.Where(a => a != null))
                 spells_ori.Remove(mainspell);
         }
@@ -1516,37 +1513,37 @@ namespace LootScaler
             foreach (Spell mainspell in spells_ori.Where(a => a != null))
             {
                 if (!mainspell.IsHandled() && !SpellNameExclude(mainspell.spellname_loc0) && !mainspell.HasTriggers())
-				{
-					List<Spell> newList = Form1.spell_list.Values.OrderBy(x => x.GetPoints()).ToList();
-					foreach (Spell s in newList.Where(a => !a.spellname_loc0.ToLower().Contains("zz")))
-					{
-						if (!spell_shortlist.ContainsKey(s.spellID))
-							if ((SpellNameFilter(mainspell.spellname_loc0) && mainspell.spellname_loc0.ToLower() == s.spellname_loc0.ToLower()) || !SpellNameFilter(mainspell.spellname_loc0))  //filtre suivant ce nom de sort uniquement si dans la liste des sorts définies dans SpellNameFilter
-								if (mainspell.effect1Aura == s.effect1Aura)
-									if (mainspell.effect2Aura == s.effect2Aura)
-										if (mainspell.effect3Aura == s.effect3Aura)
-											if (mainspell.effect1id == s.effect1id)
-												if (mainspell.effect2id == s.effect2id)
-													if (mainspell.effect3id == s.effect3id)
-														if (mainspell.rangeID == s.rangeID)
-															if (mainspell.resistancesID == s.resistancesID)
-																if (mainspell.effect1ChainTarget == s.effect1ChainTarget)
-																	if (mainspell.effect2ChainTarget == s.effect2ChainTarget)
-																		if (mainspell.effect3ChainTarget == s.effect3ChainTarget)
-																			// if (mainspell.cooldown == s.cooldown)
-																			// if (mainspell.manacost == s.manacost)
-																			if (mainspell.mechanicID == s.mechanicID)
-																				if (mainspell.effect1MiscValue == s.effect1MiscValue)
-																					if (mainspell.effect2MiscValue == s.effect2MiscValue)
-																						if (mainspell.effect3MiscValue == s.effect3MiscValue)
-																							if (mainspell.duration == s.duration)
-                                                                                                if(mainspell.schoolmask == s.schoolmask)
-                                                                                                // if ((mainspell.effect1triggerspell != 0 && s.effect1triggerspell != 0) || (mainspell.effect1triggerspell == 0 && s.effect1triggerspell == 0))
-                                                                                                // if ((mainspell.effect2triggerspell != 0 && s.effect2triggerspell != 0) || (mainspell.effect2triggerspell == 0 && s.effect2triggerspell == 0))
-                                                                                                // if ((mainspell.effect3triggerspell != 0 && s.effect3triggerspell != 0) || (mainspell.effect3triggerspell == 0 && s.effect3triggerspell == 0))
+                {
+                    List<Spell> newList = Form1.spell_list.Values.OrderBy(x => x.GetPoints()).ToList();
+                    foreach (Spell s in newList.Where(a => !a.spellname_loc0.ToLower().Contains("zz")))
+                    {
+                        if (!spell_shortlist.ContainsKey(s.spellID))
+                            if ((SpellNameFilter(mainspell.spellname_loc0) && mainspell.spellname_loc0.ToLower() == s.spellname_loc0.ToLower()) || !SpellNameFilter(mainspell.spellname_loc0))  //filtre suivant ce nom de sort uniquement si dans la liste des sorts définies dans SpellNameFilter
+                                if (mainspell.effect1Aura == s.effect1Aura)
+                                    if (mainspell.effect2Aura == s.effect2Aura)
+                                        if (mainspell.effect3Aura == s.effect3Aura)
+                                            if (mainspell.effect1id == s.effect1id)
+                                                if (mainspell.effect2id == s.effect2id)
+                                                    if (mainspell.effect3id == s.effect3id)
+                                                        if (mainspell.rangeID == s.rangeID)
+                                                            if (mainspell.resistancesID == s.resistancesID)
+                                                                if (mainspell.effect1ChainTarget == s.effect1ChainTarget)
+                                                                    if (mainspell.effect2ChainTarget == s.effect2ChainTarget)
+                                                                        if (mainspell.effect3ChainTarget == s.effect3ChainTarget)
+                                                                            // if (mainspell.cooldown == s.cooldown)
+                                                                            // if (mainspell.manacost == s.manacost)
+                                                                            if (mainspell.mechanicID == s.mechanicID)
+                                                                                if (mainspell.effect1MiscValue == s.effect1MiscValue)
+                                                                                    if (mainspell.effect2MiscValue == s.effect2MiscValue)
+                                                                                        if (mainspell.effect3MiscValue == s.effect3MiscValue)
+                                                                                            if (mainspell.duration == s.duration)
+                                                                                                if (mainspell.schoolmask == s.schoolmask)
+                                                                                                    // if ((mainspell.effect1triggerspell != 0 && s.effect1triggerspell != 0) || (mainspell.effect1triggerspell == 0 && s.effect1triggerspell == 0))
+                                                                                                    // if ((mainspell.effect2triggerspell != 0 && s.effect2triggerspell != 0) || (mainspell.effect2triggerspell == 0 && s.effect2triggerspell == 0))
+                                                                                                    // if ((mainspell.effect3triggerspell != 0 && s.effect3triggerspell != 0) || (mainspell.effect3triggerspell == 0 && s.effect3triggerspell == 0))
                                                                                                     spell_shortlist.Add(s.spellID, s);
-					}
-				}
+                    }
+                }
             }
         }
     }

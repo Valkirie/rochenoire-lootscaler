@@ -1,25 +1,16 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Configuration;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using MySql.Data.MySqlClient;
+using System.Diagnostics;
+using System.Globalization;
 //using System.Data.MySqlClient;
 using System.IO;
-using System.Text.RegularExpressions;
-using System.Globalization;
+using System.Linq;
+using System.Text;
 using System.Threading;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Collections.Concurrent;
-using System.Collections;
-using System.Configuration;
-using System.Diagnostics;
+using System.Windows.Forms;
 
 //using System.Windows.Forms;
 
@@ -471,7 +462,7 @@ namespace LootScaler
                 groupBox1.Enabled = true;
                 groupBox3.Enabled = true;
 
-                if(garbageCollector)
+                if (garbageCollector)
                     GC.Collect();
 
                 BringToFront();
@@ -697,7 +688,7 @@ namespace LootScaler
                             int r_level = item_replacement.RequiredLevel > 0 ? item_replacement.RequiredLevel : item_replacement.ItemLevel - 10;
 
                             if (item_replacement.entry != it.entry && it.ItemLevel != item_replacement.ItemLevel)
-                                if(!tmp_list.ContainsKey(r_level))
+                                if (!tmp_list.ContainsKey(r_level))
                                     tmp_list.Add(r_level, item_replacement.entry);
                         }
 
