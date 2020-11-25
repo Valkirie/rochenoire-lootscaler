@@ -238,19 +238,19 @@ namespace LootScaler
             }
         }
 
-        public int GetIlvlFromLvl(int lvlp, int BonusQuality = 0)
+        public int GetIlvlFromLvl(int _Quality, int pLevel, int BonusQuality = 0)
         {
-            int ilevel;
+            int iLevel;
 
-            if (lvlp < 61)
-                ilevel = lvlp + 5 + (ItemLevel > 92 ? 0 : (lvlp == 60 ? Math.Max(ItemLevel - 65, 0) : 0));
+            if (pLevel < 61)
+                iLevel = pLevel + 5 + (ItemLevel > 92 ? 0 : (pLevel == 60 ? Math.Max(ItemLevel - 65, 0) : 0));
             else
-                ilevel = (Quality < (int)ItemQualities.ITEM_QUALITY_RARE ? (lvlp - 60) * 3 + 90 : (lvlp - 60) * 3 + 85 + (lvlp == 70 ? Math.Max(ItemLevel - 115, 0) : 0));
+                iLevel = (_Quality < (int)ItemQualities.ITEM_QUALITY_RARE ? (pLevel - 60) * 3 + 90 : (pLevel - 60) * 3 + 85 + (pLevel == 70 ? Math.Max(ItemLevel - 115, 0) : 0));
 
-            // BonusQuality effect on ilevel
-            ilevel += BonusQuality * 10;
+            // BonusQuality effect on iLevel
+            iLevel += BonusQuality * 10;
 
-            return ilevel;
+            return iLevel;
         }
 
         public static List<Dictionary<int, ITEM_MOD>> spell_types = new List<Dictionary<int, ITEM_MOD>>
@@ -842,7 +842,7 @@ namespace LootScaler
             pathing_stat[stat] = value;
         }
 
-        public string ToString()
+        public string Export()
         {
             return outputString;
         }
@@ -1194,13 +1194,15 @@ namespace LootScaler
                     for (int i = 0; i < 5; i++)
                         if (spells[i] == null)
                         {
-                            spells[i] = new Spell(Form1.spell_list[spellid]);
-                            spells[i].spelltrigger = 1;
-                            spells[i].spellcharges = 0;
-                            spells[i].spellppmRate = 0; 
-                            spells[i].spellcooldown = -1;
-                            spells[i].spellcategory = 0;
-                            spells[i].spellcategorycooldown = -1;
+                            spells[i] = new Spell(Form1.spell_list[spellid])
+                            {
+                                spelltrigger = 1,
+                                spellcharges = 0,
+                                spellppmRate = 0,
+                                spellcooldown = -1,
+                                spellcategory = 0,
+                                spellcategorycooldown = -1
+                            };
                             break;
                         }
                 }

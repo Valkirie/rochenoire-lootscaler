@@ -58,8 +58,6 @@ namespace LootScaler
         static public UTF8Encoding UTF8NoPreamble = new UTF8Encoding(false);
 
         static Dictionary<int, Item> item_list = new Dictionary<int, Item>();
-        List<Item> done_item_list = new List<Item>();
-
         List<Item> consumables_list = new List<Item>();
         List<Item> weapons_list = new List<Item>();
         List<Item> armors_list = new List<Item>();
@@ -67,10 +65,7 @@ namespace LootScaler
         List<Item> quest_list = new List<Item>();
 
         static public Dictionary<int, Spell> spell_list = new Dictionary<int, Spell>();
-        List<int> safe_list_spells = new List<int>() { 126, 6251, 13049, 16602, 17490, 18307, 18308, 26066, 26391, 89, 1139, 7396, 12686, 13494, 13532, 13533, 15494, 15494, 16053, 16528, 16551, 16927, 16927, 17331, 18797, 21165, 21919, 22640, 22988, 23688, 23701, 23733, 28866, 26108, 23605, 871, 835, 24353, 26467 };
-
         List<int> forbidden_list = new List<int>();
-        List<string> output = new List<string>();
 
         static public Dictionary<int, Enchantment> Enchantment_list = new Dictionary<int, Enchantment>();
         static public Dictionary<int, socketBonus> socketBonus_list = new Dictionary<int, socketBonus>();
@@ -85,9 +80,6 @@ namespace LootScaler
             CorrectNumberFormat();
 
             Process Proc = Process.GetCurrentProcess();
-            long AffinityMask = (long)Proc.ProcessorAffinity;
-            AffinityMask &= 0x0055;
-            Proc.ProcessorAffinity = (IntPtr)AffinityMask;
 
             server = ConfigurationManager.AppSettings["serverIP"];          // realm.rochenoi.re
             database = ConfigurationManager.AppSettings["serverDB"];        // serverValue.Value;
@@ -118,25 +110,12 @@ namespace LootScaler
             MySqlConnection connection2 = new MySqlConnection(connectionString);
             connection2.Open();
 
-            MySqlCommand cmd = new MySqlCommand("SELECT itemID from tbcaowow.aowow_itemscale WHERE forbidden = 1 LIMIT 999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            MySqlCommand cmd = new MySqlCommand("SELECT itemID from tbcaowow.aowow_itemscale WHERE forbidden = 1 LIMIT 999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             MySqlDataReader dataReader = cmd.ExecuteReader();
             Console.WriteLine("Connection to " + server + "...");
-
-            /*
-             CREATE TABLE aowow_itemscale (
-             itemID int(8) NOT NULL,
-             forbidden tinyint(1) DEFAULT '0',
-             comment varchar(80) DEFAULT NULL,
-             PRIMARY KEY (itemID)
-             ) ENGINE=InnoDB DEFAULT CHARSET=utf8
-             */
-
-            /*
-            UPDATE tbcaowow.aowow_itemscale SET COMMENT = (SELECT NAME FROM mangos1.item_template WHERE entry = itemID);
-            DELETE FROM mangos1.item_loot_scale WHERE entry IN (SELECT itemID FROM tbcaowow.aowow_itemscale WHERE forbidden = 1);
-            DELETE FROM mangos2.item_loot_scale WHERE entry IN(SELECT itemID FROM tbcaowow.aowow_itemscale WHERE forbidden = 1);
-            */
 
             while (dataReader.Read())
             {
@@ -149,58 +128,62 @@ namespace LootScaler
 
             Console.WriteLine("Loading tbcaowow.aowow_spell...");
 
-            cmd = new MySqlCommand("SELECT sp.spellID,sd.durationBase,sp.spellname,sp.spelltype,sp.tooltip,sp.effect1BasePoints,sp.effect1DieSides,sp.effect1Aura,sp.effect2Aura,sp.effect3Aura,sp.resistancesID,sp.rangeID,sp.mechanicID,sp.effect1id,sp.effect2id,sp.effect3id,sp.effect1MiscValue,sp.effect2MiscValue,sp.effect3MiscValue,sp.effect1Amplitude,sp.effect2Amplitude,sp.effect3Amplitude,sp.effect1itemtype,sp.effect2itemtype,sp.effect3itemtype,sp.cooldown,sp.effect1triggerspell,sp.effect2triggerspell,sp.effect3triggerspell,sp.effect1ChainTarget,sp.effect2ChainTarget,sp.effect3ChainTarget,sp.manacost,sp.procChance,sp.schoolmask FROM tbcaowow.aowow_spell sp, tbcaowow.aowow_spellduration sd WHERE sp.durationID = sd.durationID LIMIT 999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            cmd = new MySqlCommand("SELECT sp.spellID,sd.durationBase,sp.spellname,sp.spelltype,sp.tooltip,sp.effect1BasePoints,sp.effect1DieSides,sp.effect1Aura,sp.effect2Aura,sp.effect3Aura,sp.resistancesID,sp.rangeID,sp.mechanicID,sp.effect1id,sp.effect2id,sp.effect3id,sp.effect1MiscValue,sp.effect2MiscValue,sp.effect3MiscValue,sp.effect1Amplitude,sp.effect2Amplitude,sp.effect3Amplitude,sp.effect1itemtype,sp.effect2itemtype,sp.effect3itemtype,sp.cooldown,sp.effect1triggerspell,sp.effect2triggerspell,sp.effect3triggerspell,sp.effect1ChainTarget,sp.effect2ChainTarget,sp.effect3ChainTarget,sp.manacost,sp.procChance,sp.schoolmask FROM tbcaowow.aowow_spell sp, tbcaowow.aowow_spellduration sd WHERE sp.durationID = sd.durationID LIMIT 999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             dataReader = cmd.ExecuteReader();
 
             while (dataReader.Read())
             {
-                Spell mainspell = new Spell();
-                mainspell.spellID = int.Parse(dataReader["spellID"].ToString());
-                mainspell.spellname_loc0 = dataReader["spellname"].ToString();
-                mainspell.spelltype = dataReader["spelltype"].ToString();
-                mainspell.tooltip_loc0 = dataReader["tooltip"].ToString();
-                mainspell.effect1BasePoints = int.Parse(dataReader["effect1BasePoints"].ToString());
-                mainspell.effect1DieSides = int.Parse(dataReader["effect1DieSides"].ToString());
+                Spell mainspell = new Spell
+                {
+                    spellID = int.Parse(dataReader["spellID"].ToString()),
+                    spellname_loc0 = dataReader["spellname"].ToString(),
+                    spelltype = dataReader["spelltype"].ToString(),
+                    tooltip_loc0 = dataReader["tooltip"].ToString(),
+                    effect1BasePoints = int.Parse(dataReader["effect1BasePoints"].ToString()),
+                    effect1DieSides = int.Parse(dataReader["effect1DieSides"].ToString()),
 
-                mainspell.effect1Aura = int.Parse(dataReader["effect1Aura"].ToString());
-                mainspell.effect2Aura = int.Parse(dataReader["effect2Aura"].ToString());
-                mainspell.effect3Aura = int.Parse(dataReader["effect3Aura"].ToString());
+                    effect1Aura = int.Parse(dataReader["effect1Aura"].ToString()),
+                    effect2Aura = int.Parse(dataReader["effect2Aura"].ToString()),
+                    effect3Aura = int.Parse(dataReader["effect3Aura"].ToString()),
 
-                mainspell.resistancesID = int.Parse(dataReader["resistancesID"].ToString());
-                mainspell.rangeID = int.Parse(dataReader["rangeID"].ToString());
+                    resistancesID = int.Parse(dataReader["resistancesID"].ToString()),
+                    rangeID = int.Parse(dataReader["rangeID"].ToString()),
 
-                mainspell.effect1id = int.Parse(dataReader["effect1id"].ToString());
-                mainspell.effect2id = int.Parse(dataReader["effect2id"].ToString());
-                mainspell.effect3id = int.Parse(dataReader["effect3id"].ToString());
+                    effect1id = int.Parse(dataReader["effect1id"].ToString()),
+                    effect2id = int.Parse(dataReader["effect2id"].ToString()),
+                    effect3id = int.Parse(dataReader["effect3id"].ToString()),
 
-                mainspell.effect1itemtype = int.Parse(dataReader["effect1itemtype"].ToString());
-                mainspell.effect2itemtype = int.Parse(dataReader["effect2itemtype"].ToString());
-                mainspell.effect3itemtype = int.Parse(dataReader["effect3itemtype"].ToString());
+                    effect1itemtype = int.Parse(dataReader["effect1itemtype"].ToString()),
+                    effect2itemtype = int.Parse(dataReader["effect2itemtype"].ToString()),
+                    effect3itemtype = int.Parse(dataReader["effect3itemtype"].ToString()),
 
-                mainspell.effect1triggerspell = int.Parse(dataReader["effect1triggerspell"].ToString());
-                mainspell.effect2triggerspell = int.Parse(dataReader["effect2triggerspell"].ToString());
-                mainspell.effect3triggerspell = int.Parse(dataReader["effect3triggerspell"].ToString());
+                    effect1triggerspell = int.Parse(dataReader["effect1triggerspell"].ToString()),
+                    effect2triggerspell = int.Parse(dataReader["effect2triggerspell"].ToString()),
+                    effect3triggerspell = int.Parse(dataReader["effect3triggerspell"].ToString()),
 
-                mainspell.cooldown = int.Parse(dataReader["cooldown"].ToString());
+                    cooldown = int.Parse(dataReader["cooldown"].ToString()),
 
-                mainspell.effect1ChainTarget = int.Parse(dataReader["effect1ChainTarget"].ToString());
-                mainspell.effect2ChainTarget = int.Parse(dataReader["effect2ChainTarget"].ToString());
-                mainspell.effect3ChainTarget = int.Parse(dataReader["effect3ChainTarget"].ToString());
+                    effect1ChainTarget = int.Parse(dataReader["effect1ChainTarget"].ToString()),
+                    effect2ChainTarget = int.Parse(dataReader["effect2ChainTarget"].ToString()),
+                    effect3ChainTarget = int.Parse(dataReader["effect3ChainTarget"].ToString()),
 
-                mainspell.mechanicID = int.Parse(dataReader["mechanicID"].ToString());
+                    mechanicID = int.Parse(dataReader["mechanicID"].ToString()),
 
-                mainspell.effect1MiscValue = int.Parse(dataReader["effect1MiscValue"].ToString());
-                mainspell.effect2MiscValue = int.Parse(dataReader["effect2MiscValue"].ToString());
-                mainspell.effect3MiscValue = int.Parse(dataReader["effect3MiscValue"].ToString());
+                    effect1MiscValue = int.Parse(dataReader["effect1MiscValue"].ToString()),
+                    effect2MiscValue = int.Parse(dataReader["effect2MiscValue"].ToString()),
+                    effect3MiscValue = int.Parse(dataReader["effect3MiscValue"].ToString()),
 
-                mainspell.effect1Amplitude = int.Parse(dataReader["effect1Amplitude"].ToString());
-                mainspell.effect2Amplitude = int.Parse(dataReader["effect2Amplitude"].ToString());
-                mainspell.effect3Amplitude = int.Parse(dataReader["effect3Amplitude"].ToString());
+                    effect1Amplitude = int.Parse(dataReader["effect1Amplitude"].ToString()),
+                    effect2Amplitude = int.Parse(dataReader["effect2Amplitude"].ToString()),
+                    effect3Amplitude = int.Parse(dataReader["effect3Amplitude"].ToString()),
 
-                mainspell.duration = int.Parse(dataReader["durationBase"].ToString());
+                    duration = int.Parse(dataReader["durationBase"].ToString())
+                };
                 int manacost = int.Parse(dataReader["manacost"].ToString());
-                mainspell.manacost = (manacost > 0) ? true : false;
+                mainspell.manacost = (manacost > 0);
                 mainspell.procChance = int.Parse(dataReader["procChance"].ToString());
                 mainspell.schoolmask = (SchoolMask)int.Parse(dataReader["schoolmask"].ToString());
 
@@ -214,16 +197,20 @@ namespace LootScaler
 
             Console.WriteLine("Loading aowow_itemrandomproperties...");
 
-            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_itemrandomproperties LIMIT 999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_itemrandomproperties LIMIT 999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             dataReader = cmd.ExecuteReader();
 
             while (dataReader.Read())
             {
-                Enchantment ench = new Enchantment();
-                ench.id = int.Parse(dataReader["id"].ToString());
-                ench.family = int.Parse(dataReader["type"].ToString());
-                ench.name = dataReader["suffix"].ToString();
+                Enchantment ench = new Enchantment
+                {
+                    id = int.Parse(dataReader["id"].ToString()),
+                    family = int.Parse(dataReader["type"].ToString()),
+                    name = dataReader["suffix"].ToString()
+                };
                 ench.value.Add(double.Parse(dataReader["v_green"].ToString()));
                 ench.value.Add(double.Parse(dataReader["v_blue"].ToString()));
                 Enchantment_list.Add(ench.id, ench);
@@ -233,17 +220,21 @@ namespace LootScaler
 
             Console.WriteLine("Loading aowow_itemenchantmet...");
 
-            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_itemenchantmet LIMIT 999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_itemenchantmet LIMIT 999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             dataReader = cmd.ExecuteReader();
 
             while (dataReader.Read())
             {
-                socketBonus socket = new socketBonus();
-                socket.id = int.Parse(dataReader["itemenchantmetID"].ToString());
-                socket.family = int.Parse(dataReader["familyID"].ToString());
-                socket.text = dataReader["text"].ToString();
-                socket.value = double.Parse(dataReader["value"].ToString());
+                socketBonus socket = new socketBonus
+                {
+                    id = int.Parse(dataReader["itemenchantmetID"].ToString()),
+                    family = int.Parse(dataReader["familyID"].ToString()),
+                    text = dataReader["text"].ToString(),
+                    value = double.Parse(dataReader["value"].ToString())
+                };
                 if (socket.value > 0)
                     socketBonus_list.Add(socket.id, socket);
             }
@@ -253,21 +244,25 @@ namespace LootScaler
             Console.WriteLine("Loading item_template...");
 
 
-            cmd = new MySqlCommand("SELECT i.entry, i.patch, i.class, i.subclass, i.name, i.displayid, i.Quality, i.Flags, i.BuyCount, i.BuyPrice, i.SellPrice, i.InventoryType, i.AllowableClass, i.AllowableRace, i.ItemLevel, i.RequiredLevel, i.RequiredSkill, i.RequiredSkillRank, i.requiredspell, i.requiredhonorrank, i.RequiredCityRank, i.RequiredReputationFaction, i.RequiredReputationRank, i.maxcount, i.stackable, i.ContainerSlots, i.stat_type1, i.stat_value1, i.stat_type2, i.stat_value2, i.stat_type3, i.stat_value3, i.stat_type4, i.stat_value4, i.stat_type5, i.stat_value5, i.stat_type6, i.stat_value6, i.stat_type7, i.stat_value7, i.stat_type8, i.stat_value8, i.stat_type9, i.stat_value9, i.stat_type10, i.stat_value10, i.dmg_min1, i.dmg_max1, i.dmg_type1, i.dmg_min2, i.dmg_max2, i.dmg_type2, i.dmg_min3, i.dmg_max3, i.dmg_type3, i.dmg_min4, i.dmg_max4, i.dmg_type4, i.dmg_min5, i.dmg_max5, i.dmg_type5, i.armor, i.holy_res, i.fire_res, i.nature_res, i.frost_res, i.shadow_res, i.arcane_res, i.delay, i.ammo_type, i.RangedModRange, i.spellid_1, i.spelltrigger_1, i.spellcharges_1, i.spellppmRate_1, i.spellcooldown_1, i.spellcategory_1, i.spellcategorycooldown_1, i.spellid_2, i.spelltrigger_2, i.spellcharges_2, i.spellppmRate_2, i.spellcooldown_2, i.spellcategory_2, i.spellcategorycooldown_2, i.spellid_3, i.spelltrigger_3, i.spellcharges_3, i.spellppmRate_3, i.spellcooldown_3, i.spellcategory_3, i.spellcategorycooldown_3, i.spellid_4, i.spelltrigger_4, i.spellcharges_4, i.spellppmRate_4, i.spellcooldown_4, i.spellcategory_4, i.spellcategorycooldown_4, i.spellid_5, i.spelltrigger_5, i.spellcharges_5, i.spellppmRate_5, i.spellcooldown_5, i.spellcategory_5, i.spellcategorycooldown_5, i.bonding, i.description, i.PageText, i.LanguageID, i.PageMaterial, i.startquest, i.lockid, i.Material, i.sheath, i.RandomProperty, i.RandomSuffix, i.block, i.itemset, i.MaxDurability, i.area, i.Map, i.BagFamily, i.TotemCategory, i.socketColor_1, i.socketContent_1, i.socketColor_2, i.socketContent_2, i.socketColor_3, i.socketContent_3, i.socketBonus, i.GemProperties, i.RequiredDisenchantSkill, i.ArmorDamageModifier, i.ScriptName, i.DisenchantID, i.FoodType, i.minMoneyLoot, i.maxMoneyLoot, i.Duration, i.ExtraFlags FROM item_template i WHERE i.entry < " + MIN_ENTRY_SCALE + " LIMIT 99999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            cmd = new MySqlCommand("SELECT i.entry, i.patch, i.class, i.subclass, i.name, i.displayid, i.Quality, i.Flags, i.BuyCount, i.BuyPrice, i.SellPrice, i.InventoryType, i.AllowableClass, i.AllowableRace, i.ItemLevel, i.RequiredLevel, i.RequiredSkill, i.RequiredSkillRank, i.requiredspell, i.requiredhonorrank, i.RequiredCityRank, i.RequiredReputationFaction, i.RequiredReputationRank, i.maxcount, i.stackable, i.ContainerSlots, i.stat_type1, i.stat_value1, i.stat_type2, i.stat_value2, i.stat_type3, i.stat_value3, i.stat_type4, i.stat_value4, i.stat_type5, i.stat_value5, i.stat_type6, i.stat_value6, i.stat_type7, i.stat_value7, i.stat_type8, i.stat_value8, i.stat_type9, i.stat_value9, i.stat_type10, i.stat_value10, i.dmg_min1, i.dmg_max1, i.dmg_type1, i.dmg_min2, i.dmg_max2, i.dmg_type2, i.dmg_min3, i.dmg_max3, i.dmg_type3, i.dmg_min4, i.dmg_max4, i.dmg_type4, i.dmg_min5, i.dmg_max5, i.dmg_type5, i.armor, i.holy_res, i.fire_res, i.nature_res, i.frost_res, i.shadow_res, i.arcane_res, i.delay, i.ammo_type, i.RangedModRange, i.spellid_1, i.spelltrigger_1, i.spellcharges_1, i.spellppmRate_1, i.spellcooldown_1, i.spellcategory_1, i.spellcategorycooldown_1, i.spellid_2, i.spelltrigger_2, i.spellcharges_2, i.spellppmRate_2, i.spellcooldown_2, i.spellcategory_2, i.spellcategorycooldown_2, i.spellid_3, i.spelltrigger_3, i.spellcharges_3, i.spellppmRate_3, i.spellcooldown_3, i.spellcategory_3, i.spellcategorycooldown_3, i.spellid_4, i.spelltrigger_4, i.spellcharges_4, i.spellppmRate_4, i.spellcooldown_4, i.spellcategory_4, i.spellcategorycooldown_4, i.spellid_5, i.spelltrigger_5, i.spellcharges_5, i.spellppmRate_5, i.spellcooldown_5, i.spellcategory_5, i.spellcategorycooldown_5, i.bonding, i.description, i.PageText, i.LanguageID, i.PageMaterial, i.startquest, i.lockid, i.Material, i.sheath, i.RandomProperty, i.RandomSuffix, i.block, i.itemset, i.MaxDurability, i.area, i.Map, i.BagFamily, i.TotemCategory, i.socketColor_1, i.socketContent_1, i.socketColor_2, i.socketContent_2, i.socketColor_3, i.socketContent_3, i.socketBonus, i.GemProperties, i.RequiredDisenchantSkill, i.ArmorDamageModifier, i.ScriptName, i.DisenchantID, i.FoodType, i.minMoneyLoot, i.maxMoneyLoot, i.Duration, i.ExtraFlags FROM item_template i WHERE i.entry < " + MIN_ENTRY_SCALE + " LIMIT 99999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             dataReader = cmd.ExecuteReader();
 
             if (dataReader != null)
             {
                 while (dataReader.Read())
                 {
-                    Item it = new Item();
-                    it.entry = int.Parse(dataReader["entry"].ToString());
-                    it.patch = int.Parse(dataReader["patch"].ToString());
-                    it.parent_entry = int.Parse(dataReader["entry"].ToString());
-                    it._class = int.Parse(dataReader["class"].ToString());
-                    it.subclass = int.Parse(dataReader["subclass"].ToString());
-                    it.name = (string)(dataReader["name"].ToString());
+                    Item it = new Item
+                    {
+                        entry = int.Parse(dataReader["entry"].ToString()),
+                        patch = int.Parse(dataReader["patch"].ToString()),
+                        parent_entry = int.Parse(dataReader["entry"].ToString()),
+                        _class = int.Parse(dataReader["class"].ToString()),
+                        subclass = int.Parse(dataReader["subclass"].ToString()),
+                        name = (string)(dataReader["name"].ToString())
+                    };
 
                     if (it.name.Contains(' '))
                         it.name_split = it.name.ToLower().Split(' ').ToList();
@@ -347,14 +342,16 @@ namespace LootScaler
 
                         if (spell_list.ContainsKey(spellid))
                         {
-                            Spell sp = new Spell(spell_list[spellid]);
-                            sp.spellID = spellid;
-                            sp.spelltrigger = int.Parse(dataReader["spelltrigger_" + i].ToString());
-                            sp.spellcharges = int.Parse(dataReader["spellcharges_" + i].ToString());
-                            sp.spellppmRate = float.Parse(dataReader["spellppmRate_" + i].ToString());
-                            sp.spellcooldown = int.Parse(dataReader["spellcooldown_" + i].ToString());
-                            sp.spellcategory = int.Parse(dataReader["spellcategory_" + i].ToString());
-                            sp.spellcategorycooldown = int.Parse(dataReader["spellcategorycooldown_" + i].ToString());
+                            Spell sp = new Spell(spell_list[spellid])
+                            {
+                                spellID = spellid,
+                                spelltrigger = int.Parse(dataReader["spelltrigger_" + i].ToString()),
+                                spellcharges = int.Parse(dataReader["spellcharges_" + i].ToString()),
+                                spellppmRate = float.Parse(dataReader["spellppmRate_" + i].ToString()),
+                                spellcooldown = int.Parse(dataReader["spellcooldown_" + i].ToString()),
+                                spellcategory = int.Parse(dataReader["spellcategory_" + i].ToString()),
+                                spellcategorycooldown = int.Parse(dataReader["spellcategorycooldown_" + i].ToString())
+                            };
 
                             it.spells_ori[i - 1] = sp;
                         }
@@ -423,8 +420,10 @@ namespace LootScaler
 
                             if (Enchantment_list.ContainsKey(id))
                             {
-                                Enchantment ench = new Enchantment(Enchantment_list[id]);
-                                ench.chance = chance;
+                                Enchantment ench = new Enchantment(Enchantment_list[id])
+                                {
+                                    chance = chance
+                                };
                                 it.enchantments_ori.Add(ench);
                             }
                         }
@@ -437,8 +436,10 @@ namespace LootScaler
                 }
                 dataReader.Close();
 
-                cmd = new MySqlCommand("SELECT l.entry, l.name_loc2, l.description_loc2 FROM locales_item l WHERE l.entry < " + MIN_ENTRY_SCALE, connection);
-                cmd.CommandTimeout = connectionTimeout;
+                cmd = new MySqlCommand("SELECT l.entry, l.name_loc2, l.description_loc2 FROM locales_item l WHERE l.entry < " + MIN_ENTRY_SCALE, connection)
+                {
+                    CommandTimeout = connectionTimeout
+                };
                 dataReader = cmd.ExecuteReader();
 
                 while (dataReader.Read())
@@ -484,7 +485,7 @@ namespace LootScaler
             int idxStart = src.IndexOf(start);
             if (idxStart != -1)
             {
-                idxStart = idxStart + start.Length;
+                idxStart += start.Length;
                 int idxEnd = src.IndexOf(ended, idxStart);
                 if (idxEnd != -1)
                 {
@@ -564,7 +565,7 @@ namespace LootScaler
             return false;
         }
 
-        List<int> AURA_SAFE = new List<int>{ (int)AuraType.SPELL_AURA_NONE, (int)AuraType.SPELL_AURA_BIND_SIGHT, (int)AuraType.SPELL_AURA_MOD_POSSESS, (int)AuraType.SPELL_AURA_PERIODIC_DAMAGE,
+        readonly List<int> AURA_SAFE = new List<int>{ (int)AuraType.SPELL_AURA_NONE, (int)AuraType.SPELL_AURA_BIND_SIGHT, (int)AuraType.SPELL_AURA_MOD_POSSESS, (int)AuraType.SPELL_AURA_PERIODIC_DAMAGE,
     (int)AuraType.SPELL_AURA_DUMMY, (int)AuraType.SPELL_AURA_MOD_CHARM, (int)AuraType.SPELL_AURA_PERIODIC_HEAL, (int)AuraType.SPELL_AURA_MOD_DAMAGE_DONE,
     (int)AuraType.SPELL_AURA_MOD_DAMAGE_TAKEN, (int)AuraType.SPELL_AURA_DAMAGE_SHIELD, (int)AuraType.SPELL_AURA_OBS_MOD_HEALTH, (int)AuraType.SPELL_AURA_OBS_MOD_MANA,
     (int)AuraType.SPELL_AURA_MOD_RESISTANCE, (int)AuraType.SPELL_AURA_PERIODIC_TRIGGER_SPELL, (int)AuraType.SPELL_AURA_PERIODIC_ENERGIZE, (int)AuraType.SPELL_AURA_MOD_STAT,
@@ -588,18 +589,12 @@ namespace LootScaler
     (int)AuraType.SPELL_AURA_MOD_DAMAGE_DONE_VERSUS, (int)AuraType.SPELL_AURA_DETECT_AMORE, (int)AuraType.SPELL_AURA_ALLOW_CHAMPION_SPELLS, (int)AuraType.SPELL_AURA_AOE_CHARM,
     (int)AuraType.SPELL_AURA_MOD_DEBUFF_RESISTANCE, (int)AuraType.SPELL_AURA_MOD_FLAT_SPELL_DAMAGE_VERSUS, (int)AuraType.SPELL_AURA_MOD_FLAT_SPELL_CRIT_DAMAGE_VERSUS };
 
-        bool isAuraSafe(int EffectApplyAuraName)
-        {
-            return AURA_SAFE.Contains(EffectApplyAuraName);
-        }
-
         List<int> SPELL_EFFECT_RESTRICTED = new List<int> { (int)SpellEffects.SPELL_EFFECT_DUMMY }; // Do not scale those effects
         bool isEffectRestricted(int Effect)
         {
             return SPELL_EFFECT_RESTRICTED.Contains(Effect);
         }
 
-        List<int> AURA_IGNORED = new List<int> { (int)AuraType.SPELL_AURA_MOD_SKILL, (int)AuraType.SPELL_AURA_MOD_SKILL_TALENT }; // Do not scale those effects
         List<int> EFFECT_IGNORED = new List<int> { (int)SpellEffects.SPELL_EFFECT_NONE, (int)SpellEffects.SPELL_EFFECT_ENCHANT_ITEM, (int)SpellEffects.SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY }; // Do not scale those effects
         bool isEffectMiscIgnored(int Effect)
         {
@@ -728,11 +723,11 @@ namespace LootScaler
         }
 
         public static int[] buyprice = new int[] { 0, 36, 71, 71, 88, 206, 380, 399, 538, 1041, 2264, 3429, 5109, 6267, 7377, 9375, 10699, 12471, 14208, 15429, 18197, 20859, 23269, 26712, 27500, 29185, 31948, 34712, 36528, 41695, 48302, 53949, 62051, 72886, 77373, 83183, 90316, 94951, 107665, 121033, 127320, 131048, 142936, 165169, 168534, 180695, 196443, 208389, 220206, 230000, 239377, 245000, 251259, 265320, 279382, 293444, 328092, 365580, 405649, 428242, 454890, 460000, 470000, 480000, 500000, 510000, 520000, 530000, 540000, 550000, 560000, 570000, 886627 };
-        public static int GetPrice(Item it, int RequiredLevel)
+        public static int GetPrice(int BuyPrice, int RequiredLevel, int pLevel)
         {
             double expected_buyprice = buyprice[RequiredLevel];
-            double buyprice_ratio = it.BuyPrice / expected_buyprice;
-            double expected_scaled_buyprice = buyprice[it.RequiredLevel] * buyprice_ratio;
+            double buyprice_ratio = BuyPrice / expected_buyprice;
+            double expected_scaled_buyprice = buyprice[pLevel] * buyprice_ratio;
 
             return (int)(expected_scaled_buyprice);
         }
@@ -766,10 +761,7 @@ namespace LootScaler
                 }
 
                 if (closest_socket.id != 0)
-                {
                     item.socketBonus_new = closest_socket;
-                    // MessageBox.Show("Has '" + current_socket.text + "' (+" + s_current + ")\n" + "Looking for '" + current_socket.text + "' (+" + lookup_value + ")\n" + "Found '" + closest_socket.text + "' (+" + closest_value + ")");
-                }
             }
         }
 
@@ -1498,9 +1490,6 @@ namespace LootScaler
             return 8.0;
         }
 
-        List<int> stat_type = new List<int>(new int[Item.ITEM_MOD_MAX]);
-        List<int> spells_values = new List<int>(new int[Item.SPELL_MOD_MAX]);
-
         static double alpha = 1.705;
 
         private static double getCoeffR(int ilevel_in, int ilevel_out, int quality_in, int quality_out)
@@ -1555,18 +1544,9 @@ namespace LootScaler
             double dps_expect = GetDps(it_ori, it.ItemLevel);
             double dps_origin = (it_ori.delay < 1) ? 0 : 1000.0 * (it_ori.damages_ori[0].max + it_ori.damages_ori[0].min) / (2 * (double)it_ori.delay);
 
-            // Doing work on damage sacrifice
-            double dps_onehan = 0;
-            double dps_sacrif = dps_scaled;
-
-            bool IsDpsSac = false;
-
             // DPS Sacrifice
             if (it._class == 2)
             {
-                double Expected_OriWeaponSpell = 0;
-                double Expected_OriWeaponHeal = 0;
-
                 // DPS sacrifice : Start
                 // Cette partie doit passer avant le pathing
                 // Cette partie permet de déterminer si l'arme est une arme caster/healer/druid
@@ -1579,8 +1559,14 @@ namespace LootScaler
                 // A la fin, les deux valeurs sont à additionner. (Cette gestion est un peu comparable au bonus armor).
                 if (it_ori._class == 2) // weapons
                 {
+                    double dps_sacrif;
+                    double Expected_OriWeaponSpell;
+                    double Expected_OriWeaponHeal;
                     if (new[] { 1, 5, 8, 10, 17, 20 }.Contains(it_ori.subclass))  //2H weap    //dps_origin  < dps_expect && 
                     {
+
+                        // Doing work on damage sacrifice
+                        double dps_onehan;
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("SPELLDMG", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_CASTER_WEAP] == 1)
                         {
                             // Reduce weap DPS and Add Spell damage
@@ -1592,8 +1578,6 @@ namespace LootScaler
                             Expected_OriWeaponSpell = Math.Round(4 * (dps_expect - dps_origin));
                             spells_malus[(int)SpellType.SPELLDMG] = Math.Max(Expected_OriWeaponSpell, 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
 
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("HEAL", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_HEALER_WEAP] == 1)
@@ -1606,8 +1590,6 @@ namespace LootScaler
                             Expected_OriWeaponHeal = Math.Round(7.5 * (dps_expect - dps_origin));
                             spells_malus[(int)SpellType.HEAL] = Math.Max(Expected_OriWeaponHeal, 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
 
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("ATTACKPWR_FERAL", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_DRUID_WEAP] == 1)
@@ -1617,8 +1599,6 @@ namespace LootScaler
                             dps_sacrif = Math.Min(dps_scaled, 0.3 * dps_onehan + 41.5);
                             spells_bonus[(int)SpellType.ATTACKPWR_FERAL] = Math.Max(Math.Round(18.37 * (dps_scaled - dps_sacrif) - 12.4843), 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
                     }
                     else if (new[] { 0, 4, 7, 13, 15 }.Contains(it_ori.subclass))   //1H weap
@@ -1633,8 +1613,6 @@ namespace LootScaler
 
                             spells_malus[(int)SpellType.SPELLDMG] = Math.Max(Expected_OriWeaponSpell, 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
 
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("HEAL", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_HEALER_WEAP] == 1)  //Attention, il faut rajouter une condition sur les sorts présents (spell / heal /feral attackpower)
@@ -1645,8 +1623,6 @@ namespace LootScaler
                             Expected_OriWeaponHeal = Math.Round(7.5 * (dps_expect - dps_origin));
                             spells_malus[(int)SpellType.HEAL] = Math.Max(Expected_OriWeaponHeal, 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
 
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("ATTACKPWR_FERAL", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_DRUID_WEAP] == 1)  //Attention, il faut rajouter une condition sur les sorts présents (spell / heal /feral attackpower)
@@ -1654,18 +1630,10 @@ namespace LootScaler
                             dps_sacrif = Math.Min(dps_scaled, 41.5);
                             spells_bonus[(int)SpellType.ATTACKPWR_FERAL] = Math.Max(Math.Round(18.37 * (dps_scaled - dps_sacrif) - 12.4843), 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
                     }
                 }
             }
-
-            //Doing work on weapon DPS
-            //Weapon Damage Scaling
-            double MainDmgMin = 0;
-            double MainDmgMax = 0;
-            bool IsDmgBQWritten = false;
 
             for (int i = 0; i < 5; i++)
             {
@@ -1673,28 +1641,11 @@ namespace LootScaler
                 Damage new_dmg = new Damage(old_dmg.min, old_dmg.max, old_dmg.type);
                 double reste = Math.Max(dps_scaled - dps_scaledNoBQ, 0);
 
-                if (i == 0)
-                {
-                    MainDmgMin = new_dmg.min;
-                    MainDmgMax = new_dmg.max;
-                }
-
                 if (dps_expect != 0)
                 {
                     new_dmg.min = (int)(new_dmg.min * (dps_scaledNoBQ + 0.3 * reste) / dps_expect);
                     new_dmg.max = (int)(new_dmg.max * (dps_scaledNoBQ + 0.3 * reste) / dps_expect);
                 }
-
-                /* if (it.Quality == 5 && it.BonusQuality == 1 && IsDpsSac == false && IsDmgBQWritten == false)
-                {
-                    if (new_dmg.max == 0)
-                    {
-                        new_dmg.min = (int)(MainDmgMin * 0.7 * reste / dps_expect);
-                        new_dmg.max = (int)(MainDmgMax * 0.7 * reste / dps_expect);
-                        new_dmg.type = (it_ori.entry % 6) + 1;
-                        IsDmgBQWritten = true;
-                    }
-                } */
 
                 new_dmg.min = double.IsNaN(new_dmg.min) ? 0 : (new_dmg.min);
                 new_dmg.max = double.IsNaN(new_dmg.max) ? 0 : (new_dmg.max);
@@ -1777,7 +1728,6 @@ namespace LootScaler
                         {
                             int indPathing = j + (SPELL_MOD_TYPE + (SPELL_MOD_TYPE == 0 ? 0 : 2)) * 10;     //Dirty fix to get the proper index of pathing_spell since pathing_spell and spell_type doesn't share the same structure.
 
-                            string spell_type = Item.spell_types[SPELL_MOD_TYPE].ElementAt(j).Value.name;
                             int spell_id = Item.spell_types[SPELL_MOD_TYPE].ElementAt(j).Key;
 
                             double spell_weigth = Math.Pow(Item.spell_types[SPELL_MOD_TYPE].ElementAt(j).Value.weigth, alpha);
@@ -1797,14 +1747,13 @@ namespace LootScaler
                 int TempLvl = Math.Max(it_ori.ItemLevel, 65);
                 double t_coeffR = getCoeffR(it_ori.ItemLevel, TempLvl, it_ori.Quality, it_ori.Quality);
                 double t_coeffK = coeffP2 * Math.Pow(t_coeffR / coeffR, alpha);   //P ou P2 ??
-                double redoStat2 = 0;
-                double MOD_WEIGHT = 0;
                 double coeffKreduit = 0;
 
                 for (int i = Item.ITEM_MOD_DEFENSE_SKILL_RATING; i < Item.ITEM_MOD_LAST; i++)
                 {
                     if (it.pathing_stat[i] != 0)
                     {
+                        double MOD_WEIGHT;
                         switch (i)
                         {
                             case Item.ITEM_MOD_CRIT_MELEE_RATING: MOD_WEIGHT = 14; break;
@@ -1824,7 +1773,7 @@ namespace LootScaler
                         }
 
                         // A REVOIR : la valeur de la stat ajouter est trop élevé (elle devrait être égal au poid au lvl 60)
-                        redoStat2 = Math.Max(Math.Pow((1 - Math.Pow(MOD_WEIGHT, alpha) / t_coeffK), (1 / alpha)), 0.70);    //On réduit les stats d'au maximum 30%
+                        double redoStat2 = Math.Max(Math.Pow((1 - Math.Pow(MOD_WEIGHT, alpha) / t_coeffK), (1 / alpha)), 0.70);
 
                         if (double.IsNaN(redoStat2))
                             continue;
@@ -1835,7 +1784,6 @@ namespace LootScaler
                             stats_redo[j] *= redoStat2;
                         }
 
-                        int mod_value = it.GetItemModValue(i);
                         int s_mod_value = Convert.ToInt32(Math.Pow(coeffKreduit * (1 - Math.Pow(redoStat2, alpha)), (1 / alpha)));
                         it.SetItemModValue(i, s_mod_value);
                     }
@@ -1843,7 +1791,6 @@ namespace LootScaler
 
                 for (int i = Item.ITEM_MOD_AGILITY; i <= Item.ITEM_MOD_STAMINA; i++)
                 {
-                    int mod_value = it.GetItemModValue(i);
                     int s_mod_value = Convert.ToInt32(stats_redo[i]);
                     it.SetItemModValue(i, s_mod_value);
                 }
@@ -1878,7 +1825,6 @@ namespace LootScaler
                 int socketRedCount = it.socketColor_1 == 2 ? 1 : 0 + it.socketColor_2 == 2 ? 1 : 0 + it.socketColor_3 == 2 ? 1 : 0;
                 int socketYellowCount = it.socketColor_1 == 4 ? 1 : 0 + it.socketColor_2 == 4 ? 1 : 0 + it.socketColor_3 == 4 ? 1 : 0;
                 int socketBlueCount = it.socketColor_1 == 8 ? 1 : 0 + it.socketColor_2 == 8 ? 1 : 0 + it.socketColor_3 == 8 ? 1 : 0;
-                int socketCount = socketMetaCount + socketRedCount + socketYellowCount + socketBlueCount;
 
                 int has_dodge = it.GetItemModValue(Item.ITEM_MOD_DODGE_RATING);
                 int has_parry = it.GetItemModValue(Item.ITEM_MOD_PARRY_RATING);
@@ -2000,8 +1946,10 @@ namespace LootScaler
                 MySqlConnection connection = new MySqlConnection(connectionString);
                 connection.Open();
 
-                MySqlCommand cmd = new MySqlCommand("SELECT i.entry, i.displayid, i.InventoryType, i.sheath FROM item_template i LIMIT 99999999", connection);
-                cmd.CommandTimeout = connectionTimeout;
+                MySqlCommand cmd = new MySqlCommand("SELECT i.entry, i.displayid, i.InventoryType, i.sheath FROM item_template i LIMIT 99999999", connection)
+                {
+                    CommandTimeout = connectionTimeout
+                };
                 MySqlDataReader dataReader = cmd.ExecuteReader();
 
                 if (dataReader != null)
@@ -2045,8 +1993,8 @@ namespace LootScaler
 
                     it.sItemLevel = ilevel;
 
-                    it.entry = getScaledId(item.entry, 0, ilevel); // 0 : Bonus Quality
-                    it.BuyPrice = item.SellPrice != 0 ? GetPrice(it, item.RequiredLevel) : 0;
+                    it.entry = getScaledId(item.entry, 0, ilevel);
+                    it.BuyPrice = item.SellPrice != 0 ? GetPrice(item.BuyPrice, item.RequiredLevel, ilevel - 5) : 0;
                     it.SellPrice = it.BuyPrice / 5;
 
                     // Last step
@@ -2062,7 +2010,7 @@ namespace LootScaler
 
                     foreach (Item it in itemlist)
                     {
-                        outputFile.Write(it.ToString());
+                        outputFile.Write(it.Export());
                         if (it.Equals(last))
                             outputFile.Write(";\n");
                         else
@@ -2129,60 +2077,6 @@ namespace LootScaler
             if (item.Quality < (int)ItemQualities.ITEM_QUALITY_LEGENDARY) //Pas de changement de spell pour les items de qualité épic et sup (>=4)
                 item.GenerateSpellShortList();
 
-            /*
-            //Work On loopmin and max
-            item.loopmin = ilevel_min;
-            item.loopmax = MAX_ILEVEL_SCALE;
-
-            switch (item.Quality)   //Filter to reduce the number of items scaled. 
-            {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    item.loopmax = 125;
-                    break;
-                case 5:
-                case 4:
-                    item.loopmax = 150;
-                    if (item.patch > (int)WowPatch.WOW_PATCH_112) // TBC Raid Items
-                    {
-                        if (item.ItemLevel >= 100)
-                        {
-                            item.loopmin = item.ItemLevel;
-                            item.loopmax = item.ItemLevel + 10;
-                        }
-                    }
-                    else // VANILLA Raid Items
-                    {
-                        if (item.ItemLevel >= 66 && item.ItemLevel <= 92)
-                        {
-                            item.loopmin = item.ItemLevel;// item.ItemLevel;
-                            item.loopmax = 120;// loop_min;
-                        }
-                    }
-                    break;
-                case 6:
-                    item.loopmin = item.ItemLevel;
-                    item.loopmax = item.loopmin + 10;
-                    break;
-            }
-
-            item.loopmin = Math.Max(ilevel_min, item.loopmin);
-            item.loopmax = Math.Min(MAX_ILEVEL_SCALE, item.loopmax);
-
-            // work on ilvl list
-            List<int> ilvlList = new List<int>();
-
-            for (int pLevel = 10; pLevel <= 70; pLevel++)
-            {
-                int ilvlAdd = item.GetIlvlFromLvl(pLevel);
-                if (ilvlAdd >= item.loopmin && ilvlAdd <= item.loopmax)
-                    ilvlList.Add(item.GetIlvlFromLvl(pLevel));
-            }
-
-            ilvlList = ilvlList.Distinct().ToList(); */
-
             // Work on bonus armor
             int expect_armor = GetArmor(item, item.ItemLevel);
             item.bonus_armor = Math.Max(item.armor - expect_armor, 0);
@@ -2203,38 +2097,32 @@ namespace LootScaler
                 int itQuality = item.Quality + BonusQuality;
                 List<Item> itemlist = new List<Item>();
 
-                for (int pLevel = MIN_ILEVEL_SCALE; pLevel <= MAX_ILEVEL_SCALE; pLevel++) //foreach (int ilevel in ilvlList) // for (int ilevel = item.loopmin; ilevel <= item.loopmax; ilevel++)
+                for (int pLevel = MIN_ILEVEL_SCALE; pLevel <= MAX_ILEVEL_SCALE; pLevel++)
                 {
-                    Item it = new Item(item);
+                    // temporary compute
+                    string Name = item.name.Replace("\"", "\\\"");
+                    string Description = item.description.Replace("\"", "\\\"");
+                    int ItemLevel = item.GetIlvlFromLvl(itQuality, pLevel, BonusQuality);
+                    int Entry = getScaledId(item.entry, itBonusQuality, pLevel);
+                    int BuyPrice = item.SellPrice != 0 ? GetPrice(item.BuyPrice, item.RequiredLevel, pLevel) : 0;
+                    int ItemSet = ItemLevel >= item.ItemLevel ? item.itemset : 0;
 
-                    it.Quality = itQuality;
-
-                    /* if (item.BonusQuality == 1 && it.Quality > 4)   //Il faut mettre l'enchant ID à 0 pour les items legendaires et artifacts
-                        it.DisenchantID = 0; */
-
-                    it.name = it.name.Replace("\"", "\\\"");
-                    it.description = it.description.Replace("\"", "\\\"");
-
-                    if (it.name_loc2 != null)
-                        it.name_loc2 = it.name_loc2.Replace("\"", "\\\"");
-                    if (it.description_loc2 != null)
-                        it.description_loc2 = it.description_loc2.Replace("\"", "\\\"");
-
-                    it.sItemLevel = it.GetIlvlFromLvl(pLevel, BonusQuality); //ilevel;
-                    it.RequiredLevel = pLevel; // ComputeRequiredLevel(it);
-                    item.RequiredLevel = pLevel; //ComputeRequiredLevel(item);
-
-                    it.entry = getScaledId(item.entry, itBonusQuality, pLevel);
-                    it.BuyPrice = item.SellPrice != 0 ? GetPrice(it, item.RequiredLevel) : 0;
-                    it.SellPrice = it.BuyPrice / 5;
+                    Item it = new Item(item)
+                    {
+                        entry = Entry,
+                        Quality = itQuality,
+                        RequiredLevel = pLevel,
+                        name = Name,
+                        description = Description,
+                        sItemLevel = ItemLevel,
+                        BuyPrice = BuyPrice,
+                        SellPrice = BuyPrice / 5,
+                        itemset = ItemSet
+                    };
 
                     ScaleItem(ref it, item);
-
-                    // itemset
-                    it.itemset = it.sItemLevel >= item.ItemLevel ? item.itemset : 0;
-
-                    // Last step
                     it.Generate();
+
                     itemlist.Add(it);
                 }
                 item.wip_item_list.Add(BonusQuality, itemlist);
@@ -2259,7 +2147,7 @@ namespace LootScaler
 
                     foreach (Item it in list)
                     {
-                        outputFile.Write(it.ToString());
+                        outputFile.Write(it.Export());
                         if (it.Equals(last))
                             outputFile.Write(";\n");
                         else
@@ -2295,7 +2183,6 @@ namespace LootScaler
 
             IEnumerable<Item> subMylist = mylist.Where(a => (filter.Items.Count == 0) || (filter.Items.Count != 0 && filter.Items.Contains(a.entry)));
             Console.Write("Processing " + list_name + "_list...");
-            //Console.Write("Processing " + list_name + "_list (" + subMylist.Count() + ") at :" + StartDateTime.ToString());
 
             foreach (Item item in subMylist)
             {
@@ -2313,19 +2200,11 @@ namespace LootScaler
                 Thread.Sleep(100);
 
             Console.WriteLine();
-
-            /* DateTime EndDateTime = DateTime.Now;
-            Console.WriteLine("method end at :" + EndDateTime);
-
-            TimeSpan span = EndDateTime - StartDateTime;
-            int TS = (int)span.TotalMinutes;
-            Console.WriteLine("Time taken to generate the scaled data base :" + TS); */
         }
 
         private int GetEntryFilterValue()
         {
-            int value = 0;
-            int.TryParse(textBox1.Text, out value);
+            int.TryParse(textBox1.Text, out int value);
             return value;
         }
 

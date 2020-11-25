@@ -192,7 +192,7 @@ namespace LootScaler
                 connection.Open();
 
                 MySqlCommand cmd = new MySqlCommand("UPDATE tbcaowow.aowow_spell SET spelltype = '" + cat + "' WHERE spellID = " + this.spellID, connection);
-                MySqlDataReader dataReader = cmd.ExecuteReader();
+                cmd.ExecuteReader();
 
                 connection.Close();
 
