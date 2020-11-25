@@ -819,24 +819,24 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 block *= 0.76;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 block *= 0.95;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 if (it_ilevel < 65)
                                     block += 4;
                                 else
                                     block += 5;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 block = 0.00214 * it_ilevel * it_ilevel + 0.897 * it_ilevel - 10;
                                 break;
                         }
@@ -939,21 +939,21 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.10;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 armor *= (it_ilevel < 93 ? 1.20 : 1.375);
                                 break;
                         }
@@ -970,21 +970,21 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.10;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 armor *= (it_ilevel < 93 ? 1.20 : 1.375);
                                 break;
                         }
@@ -1001,21 +1001,21 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.10;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 armor *= (it_ilevel < 93 ? 1.20 : 1.375);
                                 break;
                         }
@@ -1034,37 +1034,34 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.122;
                                 break;
-                            case 4:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
                                 armor *= 1.25;
                                 break;
-                            case 5:
-                            case 6:
-
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 if (it_ilevel >= 90 && it_ilevel <= 92)
                                     armor = 221 * it_ilevel - 16396;
                                 else if (it_ilevel > 93)
                                     armor *= 1.436;
                                 else
                                     armor *= 1.25;
-
                                 break;
                         }
                     }
                 }
             }
-
 
             armor = SetArmorFactor(it, armor);  // Allow the proper ammount of armor relative to the slot mod.
             return (int)armor;
@@ -1451,11 +1448,11 @@ namespace LootScaler
 
         private static double getCoeffA(int ilvl, int quality)
         {
-            if (quality <= 2)
+            if (quality < (int)ItemQualities.ITEM_QUALITY_RARE)
                 return 2.0;
-            if (quality == 3)
+            if (quality == (int)ItemQualities.ITEM_QUALITY_RARE)
                 return 1.8;
-            if (quality >= 4)
+            if (quality > (int)ItemQualities.ITEM_QUALITY_RARE)
             {
                 if (ilvl < 95)
                     return 1.7;
@@ -1467,11 +1464,11 @@ namespace LootScaler
 
         private static double getCoeffB(int ilvl, int quality)
         {
-            if (quality <= 2)
+            if (quality < (int)ItemQualities.ITEM_QUALITY_RARE)
                 return 8.0;
-            if (quality == 3)
+            if (quality == (int)ItemQualities.ITEM_QUALITY_RARE)
                 return 0.75;
-            if (quality >= 4)
+            if (quality > (int)ItemQualities.ITEM_QUALITY_RARE)
             {
                 if (ilvl < 95)
                     return -10.0;
@@ -1485,20 +1482,15 @@ namespace LootScaler
 
         private static double getCoeffR(int ilevel_in, int ilevel_out, int quality_in, int quality_out)
         {
-            int BonusLvl = 0;
-            if (quality_out == 5 && quality_in == 4)
-                BonusLvl = 9;
-
             double origin_coeffA = getCoeffA(ilevel_in, quality_in);
             double origin_coeffB = getCoeffB(ilevel_in, quality_in);
 
-            double it_coeffA1 = getCoeffA(ilevel_out + BonusLvl, quality_out);
-            double it_coeffB1 = getCoeffB(ilevel_out + BonusLvl, quality_out);
+            double it_coeffA1 = getCoeffA(ilevel_out, quality_out);
+            double it_coeffB1 = getCoeffB(ilevel_out, quality_out);
 
-            double coeffR1 = ((ilevel_out + BonusLvl - it_coeffB1) / it_coeffA1) / ((ilevel_in - origin_coeffB) / origin_coeffA);  // coeffR en prennant en compte un eventuel quality bonus
+            double coeffR1 = ((ilevel_out - it_coeffB1) / it_coeffA1) / ((ilevel_in - origin_coeffB) / origin_coeffA);  // coeffR en prennant en compte un eventuel quality bonus
 
             return double.IsInfinity(coeffR1) ? 1 : coeffR1;
-
         }
 
         public static void ScaleItem(ref Item it, Item it_ori)
@@ -1920,7 +1912,6 @@ namespace LootScaler
 
         public static int getScaledId(int entry, int BonusQuality, int level)
         {
-            //BonusQuality vaut 0 ou 1 si on veut garder la qualité de l'item identique ou la booster de 1.
             return (MIN_ENTRY_SCALE + entry * MAX_QUALITY_SCALE * MAX_ILEVEL_SCALE + BonusQuality * MAX_ILEVEL_SCALE + level);  //NEVER EVER CHANGE THIS FUNCTION.
         }
 
