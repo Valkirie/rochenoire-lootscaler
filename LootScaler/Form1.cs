@@ -463,7 +463,10 @@ namespace LootScaler
                 groupBox3.Enabled = true;
 
                 if (garbageCollector)
+                {
                     GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
 
                 BringToFront();
                 Show();
@@ -506,9 +509,6 @@ namespace LootScaler
                 generateJunk();
             if (checkQUEST.Checked)
                 generateQuest();
-
-            if (garbageCollector)
-                GC.Collect();
 
             CLEAN();
         }
@@ -2154,6 +2154,10 @@ namespace LootScaler
                 }
             }
 
+            // memory leak ?
+            item.wip_item_list.Clear();
+            item.Dispose();
+
             Console.Write(".");
             threadcount--;
         }
@@ -2169,17 +2173,20 @@ namespace LootScaler
             foreach (Item item in subMylist)
             {
                 while (threadcount >= maxThread)
-                    Thread.Sleep(1);
+                    Thread.Sleep(1000);
 
                 Thread newThread = new Thread(DoWork);
                 newThread.Start(item.entry);
 
                 if (garbageCollector)
+                {
                     GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
             }
 
             while (threadcount > 0)
-                Thread.Sleep(100);
+                Thread.Sleep(1000);
 
             Console.WriteLine();
         }

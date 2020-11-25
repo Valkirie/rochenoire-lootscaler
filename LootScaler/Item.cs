@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace LootScaler
 {
-    public class Item
+    public class Item : IDisposable
     {
         public int entry;
         public int patch;
@@ -1460,7 +1460,7 @@ namespace LootScaler
             public int Value = 0;
         }
 
-        public RATING GetModRating(Spell mainspell)
+        public static RATING GetModRating(Spell mainspell)
         {
             RATING rate = new RATING();
 
@@ -1545,6 +1545,10 @@ namespace LootScaler
                     }
                 }
             }
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
