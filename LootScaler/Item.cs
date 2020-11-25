@@ -42,7 +42,6 @@ namespace LootScaler
         public int ContainerSlots;
         public int loopmin;
         public int loopmax;
-        public int BonusQuality;
 
         public int stat_type1;
         public int stat_value1;
@@ -134,7 +133,7 @@ namespace LootScaler
         public List<Damage> damages = new List<Damage>() { null, null, null, null, null };
         public List<Damage> damages_ori = new List<Damage>() { null, null, null, null, null };
 
-        public List<Item> wip_item_list = new List<Item>();
+        public Dictionary<int, List<Item>> wip_item_list = new Dictionary<int, List<Item>>();
 
         public const int ITEM_MOD_MANA = 0;
         public const int ITEM_MOD_HEALTH = 1;

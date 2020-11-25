@@ -76,8 +76,9 @@ namespace LootScaler
         static public Dictionary<int, socketBonus> socketBonus_list = new Dictionary<int, socketBonus>();
 
         const int MIN_ENTRY_SCALE = 41000;      // Ne jamais toucher !  180  ! Never Change this value !
-        const int MAX_ILEVEL_SCALE = 180;       // Ne jamais toucher !  180  ! Never Change this value !
-        const int MAX_QUALITY_SCALE = 3;        // Ne jamais toucher !  2    ! Never Change this value !
+        const int MIN_ILEVEL_SCALE = 10;        // Ne jamais toucher !  10   ! Never Change this value !
+        const int MAX_ILEVEL_SCALE = 70;        // Ne jamais toucher !  70   ! Never Change this value !
+        const int MAX_QUALITY_SCALE = 3;        // Ne jamais toucher !  3    ! Never Change this value !
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -825,9 +826,6 @@ namespace LootScaler
             int it_quality = it.Quality;
             int it_ilevel = it.sItemLevel;
 
-            if (it_quality == 5 && it.BonusQuality == 1)
-                it_ilevel += 3;
-
             if (block != 0)
             {
                 if (it_class == 4)
@@ -910,11 +908,7 @@ namespace LootScaler
             double armor = it.armor;
             int it_class = it._class;
             int it_subclass = it.subclass;
-            int it_quality = Math.Min(it.Quality + it.BonusQuality, 5);
-
-
-            if (it_quality == 5 && it.BonusQuality == 1)
-                it_ilevel += 3;
+            int it_quality = it.Quality;
 
             if (armor != 0)
             {
@@ -1098,9 +1092,6 @@ namespace LootScaler
             int it_class = it._class;
             int it_subclass = it.subclass;
             int it_quality = it.Quality;
-
-            if (it_quality == 5 && it.BonusQuality == 1)
-                it_ilevel += 3;
 
             if (Force1H)
             {
@@ -1694,7 +1685,7 @@ namespace LootScaler
                     new_dmg.max = (int)(new_dmg.max * (dps_scaledNoBQ + 0.3 * reste) / dps_expect);
                 }
 
-                if (it.Quality == 5 && it.BonusQuality == 1 && IsDpsSac == false && IsDmgBQWritten == false)
+                /* if (it.Quality == 5 && it.BonusQuality == 1 && IsDpsSac == false && IsDmgBQWritten == false)
                 {
                     if (new_dmg.max == 0)
                     {
@@ -1703,7 +1694,7 @@ namespace LootScaler
                         new_dmg.type = (it_ori.entry % 6) + 1;
                         IsDmgBQWritten = true;
                     }
-                }
+                } */
 
                 new_dmg.min = double.IsNaN(new_dmg.min) ? 0 : (new_dmg.min);
                 new_dmg.max = double.IsNaN(new_dmg.max) ? 0 : (new_dmg.max);
@@ -1990,10 +1981,10 @@ namespace LootScaler
             }
         }
 
-        public static int getScaledId(int entry, int BonusQuality, int ilevel)
+        public static int getScaledId(int entry, int BonusQuality, int level)
         {
             //BonusQuality vaut 0 ou 1 si on veut garder la qualité de l'item identique ou la booster de 1.
-            return (MIN_ENTRY_SCALE + entry * MAX_QUALITY_SCALE * MAX_ILEVEL_SCALE + BonusQuality * MAX_ILEVEL_SCALE + ilevel);  //NEVER EVER CHANGE THIS FUNCTION.
+            return (MIN_ENTRY_SCALE + entry * MAX_QUALITY_SCALE * MAX_ILEVEL_SCALE + BonusQuality * MAX_ILEVEL_SCALE + level);  //NEVER EVER CHANGE THIS FUNCTION.
         }
 
         public void generateDBC()
@@ -2039,8 +2030,8 @@ namespace LootScaler
 
             foreach (Item item in junk_list.Where(a => (filter.Items.Count == 0) || filter.Items.Count != 0 && filter.Items.Contains(a.entry)))
             {
-                item.wip_item_list.Clear();
-                for (int ilevel = 10; ilevel <= 70; ilevel += 5)
+                List<Item> itemlist = new List<Item>();
+                for (int ilevel = MIN_ILEVEL_SCALE; ilevel <= MAX_ILEVEL_SCALE; ilevel += 5)
                 {
                     Item it = new Item(item);
 
@@ -2060,16 +2051,16 @@ namespace LootScaler
 
                     // Last step
                     it.Generate();
-                    item.wip_item_list.Add(it);
+                    itemlist.Add(it);
                 }
 
                 UTF8Encoding UTF8NoPreamble = new UTF8Encoding(false);
                 using (StreamWriter outputFile = new StreamWriter(new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "099_junk.sql"), FileMode.Append), UTF8NoPreamble))
                 {
-                    Item last = item.wip_item_list.OrderBy(b => b.entry).Last();
+                    Item last = itemlist.OrderBy(b => b.entry).Last();
                     outputFile.Write("REPLACE INTO item_template VALUES ");
 
-                    foreach (Item it in item.wip_item_list)
+                    foreach (Item it in itemlist)
                     {
                         outputFile.Write(it.ToString());
                         if (it.Equals(last))
@@ -2079,7 +2070,7 @@ namespace LootScaler
                     }
 
                     outputFile.Write("REPLACE INTO item_loot_scale VALUES ");
-                    foreach (Item it in item.wip_item_list)
+                    foreach (Item it in itemlist)
                     {
                         if (it.Equals(last))
                             outputFile.Write("(" + item.entry + ", " + it.entry + ", " + it.sItemLevel + ");\n");
@@ -2183,11 +2174,11 @@ namespace LootScaler
             // work on ilvl list
             List<int> ilvlList = new List<int>();
 
-            for (int lvlp = 10; lvlp <= 70; lvlp++)
+            for (int pLevel = 10; pLevel <= 70; pLevel++)
             {
-                int ilvlAdd = item.GetIlvlFromLvl(lvlp);
+                int ilvlAdd = item.GetIlvlFromLvl(pLevel);
                 if (ilvlAdd >= item.loopmin && ilvlAdd <= item.loopmax)
-                    ilvlList.Add(item.GetIlvlFromLvl(lvlp));
+                    ilvlList.Add(item.GetIlvlFromLvl(pLevel));
             }
 
             ilvlList = ilvlList.Distinct().ToList(); */
@@ -2202,13 +2193,17 @@ namespace LootScaler
                 itBonusQuality = 0; // Do not create Legendary, Artifacts
             else if (item.Quality <= (int)ItemQualities.ITEM_QUALITY_NORMAL)
                 itBonusQuality = 0; // Do not upgrade Poor, Common
+            else if (item.Quality == (int)ItemQualities.ITEM_QUALITY_RARE)
+                itBonusQuality = itBonusQuality == 2 ? 1 : itBonusQuality;
 
             // Main loops on bonus quality and ilvl
+            item.wip_item_list.Clear();
             for (int BonusQuality = 0; BonusQuality <= itBonusQuality; BonusQuality++)
             {
                 int itQuality = item.Quality + BonusQuality;
+                List<Item> itemlist = new List<Item>();
 
-                for (int lvlp = 10; lvlp <= 70; lvlp++) //foreach (int ilevel in ilvlList) // for (int ilevel = item.loopmin; ilevel <= item.loopmax; ilevel++)
+                for (int pLevel = MIN_ILEVEL_SCALE; pLevel <= MAX_ILEVEL_SCALE; pLevel++) //foreach (int ilevel in ilvlList) // for (int ilevel = item.loopmin; ilevel <= item.loopmax; ilevel++)
                 {
                     Item it = new Item(item);
 
@@ -2225,11 +2220,11 @@ namespace LootScaler
                     if (it.description_loc2 != null)
                         it.description_loc2 = it.description_loc2.Replace("\"", "\\\"");
 
-                    it.sItemLevel = it.GetIlvlFromLvl(lvlp, BonusQuality); //ilevel;
-                    it.RequiredLevel = lvlp; // ComputeRequiredLevel(it);
-                    item.RequiredLevel = lvlp; //ComputeRequiredLevel(item);
+                    it.sItemLevel = it.GetIlvlFromLvl(pLevel, BonusQuality); //ilevel;
+                    it.RequiredLevel = pLevel; // ComputeRequiredLevel(it);
+                    item.RequiredLevel = pLevel; //ComputeRequiredLevel(item);
 
-                    it.entry = getScaledId(item.entry, item.BonusQuality, it.sItemLevel); // 0 : Bonus Quality
+                    it.entry = getScaledId(item.entry, itBonusQuality, pLevel);
                     it.BuyPrice = item.SellPrice != 0 ? GetPrice(it, item.RequiredLevel) : 0;
                     it.SellPrice = it.BuyPrice / 5;
 
@@ -2240,19 +2235,29 @@ namespace LootScaler
 
                     // Last step
                     it.Generate();
-                    item.wip_item_list.Add(it);
+                    itemlist.Add(it);
                 }
+                item.wip_item_list.Add(BonusQuality, itemlist);
             }
 
             //Work on writing item in files
-            if (item.wip_item_list.Count != 0)
+            foreach (KeyValuePair<int, List<Item>> entry in item.wip_item_list)
             {
-                using (StreamWriter outputFile = new StreamWriter(new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "item_template", item.entry + ".sql"), FileMode.Create), UTF8NoPreamble))
+                int BonusUpgrade = entry.Key;
+                List<Item> list = entry.Value;
+
+                if (list.Count == 0)
+                    continue;
+
+                using (StreamWriter outputFile = new StreamWriter(new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "item_template", item.entry + ".sql"), FileMode.Append), UTF8NoPreamble))
                 {
-                    Item last = item.wip_item_list.OrderBy(b => b.entry).Last();
+                    Item first = list.OrderBy(b => b.entry).First();
+                    Item last = list.OrderBy(b => b.entry).Last();
+
+                    outputFile.Write("-- BonusUpgrade:" + BonusUpgrade + "\n");
                     outputFile.Write("REPLACE INTO item_template VALUES ");
 
-                    foreach (Item it in item.wip_item_list)
+                    foreach (Item it in list)
                     {
                         outputFile.Write(it.ToString());
                         if (it.Equals(last))
@@ -2264,7 +2269,7 @@ namespace LootScaler
                     if (item.enchantments_ori.Count > 0)
                     {
                         outputFile.Write("REPLACE INTO item_enchantment_template VALUES ");
-                        foreach (Item it in item.wip_item_list)
+                        foreach (Item it in list)
                         {
                             foreach (Enchantment ench in it.enchantments_new)
                             {

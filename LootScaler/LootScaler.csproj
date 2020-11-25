@@ -142,7 +142,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="filter.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="img\WoW-Burning-crusade-icon.png" />
     <Content Include="World of Warcraft.ico" />
