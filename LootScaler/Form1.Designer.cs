@@ -34,11 +34,10 @@ namespace LootScaler
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.checkQUEST = new System.Windows.Forms.CheckBox();
             this.armorCheck = new System.Windows.Forms.CheckBox();
-            this.checkJunk = new System.Windows.Forms.CheckBox();
-            this.checkDBC = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
             this.consuCheck = new System.Windows.Forms.CheckBox();
             this.weapCheck = new System.Windows.Forms.CheckBox();
+            this.checkDBC = new System.Windows.Forms.CheckBox();
             this.filter = new System.Windows.Forms.ListBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -55,7 +54,6 @@ namespace LootScaler
             // 
             this.groupBox1.Controls.Add(this.checkQUEST);
             this.groupBox1.Controls.Add(this.armorCheck);
-            this.groupBox1.Controls.Add(this.checkJunk);
             this.groupBox1.Controls.Add(this.button1);
             this.groupBox1.Controls.Add(this.consuCheck);
             this.groupBox1.Controls.Add(this.weapCheck);
@@ -70,7 +68,7 @@ namespace LootScaler
             // checkQUEST
             // 
             this.checkQUEST.AutoSize = true;
-            this.checkQUEST.Location = new System.Drawing.Point(178, 42);
+            this.checkQUEST.Location = new System.Drawing.Point(6, 88);
             this.checkQUEST.Name = "checkQUEST";
             this.checkQUEST.Size = new System.Drawing.Size(99, 17);
             this.checkQUEST.TabIndex = 6;
@@ -87,31 +85,9 @@ namespace LootScaler
             this.armorCheck.Text = "ARMORS";
             this.armorCheck.UseVisualStyleBackColor = true;
             // 
-            // checkJunk
-            // 
-            this.checkJunk.AutoSize = true;
-            this.checkJunk.Enabled = false;
-            this.checkJunk.Location = new System.Drawing.Point(178, 19);
-            this.checkJunk.Name = "checkJunk";
-            this.checkJunk.Size = new System.Drawing.Size(54, 17);
-            this.checkJunk.TabIndex = 4;
-            this.checkJunk.Text = "JUNK";
-            this.checkJunk.UseVisualStyleBackColor = true;
-            // 
-            // checkDBC
-            // 
-            this.checkDBC.AutoSize = true;
-            this.checkDBC.Enabled = false;
-            this.checkDBC.Location = new System.Drawing.Point(6, 42);
-            this.checkDBC.Name = "checkDBC";
-            this.checkDBC.Size = new System.Drawing.Size(48, 17);
-            this.checkDBC.TabIndex = 3;
-            this.checkDBC.Text = "DBC";
-            this.checkDBC.UseVisualStyleBackColor = true;
-            // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(178, 65);
+            this.button1.Location = new System.Drawing.Point(187, 13);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(99, 46);
             this.button1.TabIndex = 2;
@@ -138,6 +114,17 @@ namespace LootScaler
             this.weapCheck.TabIndex = 1;
             this.weapCheck.Text = "WEAPONS";
             this.weapCheck.UseVisualStyleBackColor = true;
+            // 
+            // checkDBC
+            // 
+            this.checkDBC.AutoSize = true;
+            this.checkDBC.Enabled = false;
+            this.checkDBC.Location = new System.Drawing.Point(6, 42);
+            this.checkDBC.Name = "checkDBC";
+            this.checkDBC.Size = new System.Drawing.Size(48, 17);
+            this.checkDBC.TabIndex = 3;
+            this.checkDBC.Text = "DBC";
+            this.checkDBC.UseVisualStyleBackColor = true;
             // 
             // filter
             // 
@@ -239,9 +226,7 @@ namespace LootScaler
         private System.Windows.Forms.ListBox filter;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.GroupBox groupBox3;
-        private PictureBox pictureBox1;
         private CheckBox checkDBC;
-        private CheckBox checkJunk;
         private CheckBox armorCheck;
         private CheckBox checkQUEST;
         private GroupBox groupBox2;

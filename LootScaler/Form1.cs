@@ -505,8 +505,6 @@ namespace LootScaler
                 generateScaleFood();
             if (checkDBC.Checked)
                 generateDBC();
-            if (checkJunk.Checked)
-                generateJunk();
             if (checkQUEST.Checked)
                 generateQuest();
 
@@ -1952,65 +1950,6 @@ namespace LootScaler
                 dataReader.Close();
                 connection.Close();
             }
-        }
-
-        public void generateJunk()
-        {
-            Console.Write("Processing junk_list...");
-
-            foreach (Item item in junk_list.Where(a => (filter.Items.Count == 0) || filter.Items.Count != 0 && filter.Items.Contains(a.entry)))
-            {
-                List<Item> itemlist = new List<Item>();
-                for (int ilevel = MIN_ILEVEL_SCALE; ilevel <= MAX_ILEVEL_SCALE; ilevel += 5)
-                {
-                    Item it = new Item(item);
-
-                    it.name = it.name.Replace("\"", "\\\"");
-                    it.description = it.description.Replace("\"", "\\\"");
-
-                    if (it.name_loc2 != null)
-                        it.name_loc2 = it.name_loc2.Replace("\"", "\\\"");
-                    if (it.description_loc2 != null)
-                        it.description_loc2 = it.description_loc2.Replace("\"", "\\\"");
-
-                    it.sItemLevel = ilevel;
-
-                    it.entry = getScaledId(item.entry, 0, ilevel);
-                    it.BuyPrice = item.SellPrice != 0 ? GetPrice(item.BuyPrice, item.RequiredLevel, ilevel - 5) : 0;
-                    it.SellPrice = it.BuyPrice / 5;
-
-                    // Last step
-                    it.Generate();
-                    itemlist.Add(it);
-                }
-
-                UTF8Encoding UTF8NoPreamble = new UTF8Encoding(false);
-                using (StreamWriter outputFile = new StreamWriter(new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "099_junk.sql"), FileMode.Append), UTF8NoPreamble))
-                {
-                    Item last = itemlist.OrderBy(b => b.entry).Last();
-                    outputFile.Write("REPLACE INTO item_template VALUES ");
-
-                    foreach (Item it in itemlist)
-                    {
-                        outputFile.Write(it.Export());
-                        if (it.Equals(last))
-                            outputFile.Write(";\n");
-                        else
-                            outputFile.Write(",\n");
-                    }
-
-                    outputFile.Write("REPLACE INTO item_loot_scale VALUES ");
-                    foreach (Item it in itemlist)
-                    {
-                        if (it.Equals(last))
-                            outputFile.Write("(" + item.entry + ", " + it.entry + ", " + it.sItemLevel + ");\n");
-                        else
-                            outputFile.Write("(" + item.entry + ", " + it.entry + ", " + it.sItemLevel + "),");
-                    }
-                }
-                Console.Write(".");
-            }
-            Console.WriteLine();
         }
 
         public static int ComputeRequiredLevel(Item it)
