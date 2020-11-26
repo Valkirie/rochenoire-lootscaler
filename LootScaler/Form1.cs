@@ -2036,6 +2036,7 @@ namespace LootScaler
                     int BuyPrice = item.BuyPrice != 0 ? GetPrice(item.BuyPrice, item.RequiredLevel, pLevel) : 0;
                     int SellPrice = item.BuyPrice != 0 ? BuyPrice / 5 : 0;
                     int ItemSet = ItemLevel >= item.ItemLevel ? item.itemset : 0;
+                    int DisenchantID = itQuality <= (int)ItemQualities.ITEM_QUALITY_EPIC ? item.DisenchantID : 0;
 
                     Item it = new Item(item)
                     {
@@ -2047,7 +2048,8 @@ namespace LootScaler
                         sItemLevel = ItemLevel,
                         BuyPrice = BuyPrice,
                         SellPrice = SellPrice,
-                        itemset = ItemSet
+                        itemset = ItemSet,
+                        DisenchantID = DisenchantID
                     };
 
                     ScaleItem(ref it, item);
