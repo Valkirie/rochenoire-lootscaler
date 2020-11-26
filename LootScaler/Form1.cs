@@ -2045,6 +2045,8 @@ namespace LootScaler
 
         public static void DoWork(object data)
         {
+            Thread.BeginThreadAffinity();
+
             threadcount++;
 
             Item item = item_list[(int)data];
@@ -2161,6 +2163,8 @@ namespace LootScaler
 
             Console.Write(".");
             threadcount--;
+
+            Thread.EndThreadAffinity();
         }
 
         public static int threadcount = 0;
