@@ -521,7 +521,7 @@ namespace LootScaler
 
                     if (weapCheck.Checked)
                     {
-                        outputFile.WriteLine("DELETE FROM item_loot_scale;");
+                        outputFile.WriteLine("DELETE FROM scale_loot;");
                         outputFile.WriteLine("DELETE FROM item_template WHERE entry > " + MIN_ENTRY_SCALE + ";");
                         outputFile.WriteLine("DELETE FROM locales_item WHERE entry > " + MIN_ENTRY_SCALE + ";");
                         outputFile.WriteLine("DELETE FROM item_enchantment_template WHERE entry > " + MIN_ENTRY_SCALE + ";");
@@ -530,7 +530,7 @@ namespace LootScaler
                     if (consuCheck.Checked)
                     {
                         outputFile.WriteLine("");
-                        outputFile.Write("DELETE FROM item_loot_scale WHERE entry IN (");
+                        outputFile.Write("DELETE FROM scale_loot WHERE entry IN (");
                         foreach (Item it in consumables_list)
                         {
                             outputFile.Write(it.entry);
@@ -693,7 +693,7 @@ namespace LootScaler
                         if (tmp_list.Count() > 0)
                         {
                             outputFile.WriteLine("-- REPLACEMENT FOR " + it.name + " [" + it.entry + "]");
-                            outputFile.Write("REPLACE INTO item_loot_scale VALUES ");
+                            outputFile.Write("REPLACE INTO scale_loot VALUES ");
 
                             var last = tmp_list.Last();
                             foreach (var item in tmp_list)
