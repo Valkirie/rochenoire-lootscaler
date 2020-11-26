@@ -2015,6 +2015,9 @@ namespace LootScaler
 
         public static int ComputeRequiredLevel(Item it)
         {
+            if (it.RequiredLevel != 0)
+                return it.RequiredLevel;
+
             int RequiredLevel = it.sItemLevel - 5;
             int ilevel = it.sItemLevel;
 
@@ -2060,6 +2063,9 @@ namespace LootScaler
 
             if (item.Quality < (int)ItemQualities.ITEM_QUALITY_LEGENDARY) //Pas de changement de spell pour les items de qualité épic et sup (>=4)
                 item.GenerateSpellShortList();
+
+            // Work on RequiredLevel
+            item.RequiredLevel = ComputeRequiredLevel(item);
 
             // Work on bonus armor
             int expect_armor = GetArmor(item, item.ItemLevel);
