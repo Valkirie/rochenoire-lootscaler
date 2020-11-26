@@ -2085,8 +2085,9 @@ namespace LootScaler
                     string Name = item.name.Replace("\"", "\\\"");
                     string Description = item.description.Replace("\"", "\\\"");
                     int ItemLevel = item.GetIlvlFromLvl(itQuality, pLevel, BonusQuality);
-                    int Entry = getScaledId(item.entry, itBonusQuality, pLevel);
-                    int BuyPrice = item.SellPrice != 0 ? GetPrice(item.BuyPrice, item.RequiredLevel, pLevel) : 0;
+                    int Entry = getScaledId(item.entry, BonusQuality, pLevel);
+                    int BuyPrice = item.BuyPrice != 0 ? GetPrice(item.BuyPrice, item.RequiredLevel, pLevel) : 0;
+                    int SellPrice = item.BuyPrice != 0 ? BuyPrice / 5 : 0;
                     int ItemSet = ItemLevel >= item.ItemLevel ? item.itemset : 0;
 
                     Item it = new Item(item)
@@ -2098,7 +2099,7 @@ namespace LootScaler
                         description = Description,
                         sItemLevel = ItemLevel,
                         BuyPrice = BuyPrice,
-                        SellPrice = BuyPrice / 5,
+                        SellPrice = SellPrice,
                         itemset = ItemSet
                     };
 
