@@ -2067,7 +2067,8 @@ namespace LootScaler
                 if (list.Count == 0)
                     continue;
 
-                using (StreamWriter outputFile = new StreamWriter(new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "item_template", item.entry + ".sql"), FileMode.Append), UTF8NoPreamble))
+                string filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "item_template", item.entry + ".sql");
+                using (StreamWriter outputFile = new StreamWriter(new FileStream(filename, BonusUpgrade == 0 ? FileMode.Create : FileMode.Append), UTF8NoPreamble))
                 {
                     Item first = list.OrderBy(b => b.entry).First();
                     Item last = list.OrderBy(b => b.entry).Last();
