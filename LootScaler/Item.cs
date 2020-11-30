@@ -1246,9 +1246,13 @@ namespace LootScaler
             foreach (Damage dmg in damages_ori.Where(a => a != null))
                 hasdamage += dmg.min;
 
+            bool hasresist = false;
+            if (holy_res != 0 || fire_res != 0 || nature_res != 0 || frost_res != 0 || shadow_res != 0 || arcane_res != 0)
+                hasresist = true;
+            
             int hassocket = socketBonus != null ? 1 : 0;
 
-            if ((hasmod != 0 || hasspell != 0 || hasdamage != 0 || hassocket != 0 || RandomProperty != 0 || armor != 0) && requiredhonorrank == 0 && ItemLevel >= 10)
+            if ((hasmod != 0 || hasspell != 0 || hasdamage != 0 || hassocket != 0 || RandomProperty != 0 || armor != 0 || hasresist) && requiredhonorrank == 0 && ItemLevel >= 10)
                 return true;
 
             return false;
