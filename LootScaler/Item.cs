@@ -241,10 +241,10 @@ namespace LootScaler
             if (pLevel < 61)
                 iLevel = pLevel + 5 + (ItemLevel > 92 ? 0 : (pLevel == 60 ? Math.Max(ItemLevel - 65, 0) : 0));
             else
-                iLevel = (_Quality < (int)ItemQualities.ITEM_QUALITY_RARE ? (pLevel - 60) * 3 + 90 : (pLevel - 60) * 3 + 85 + (pLevel == 70 ? Math.Max(ItemLevel - 115, 0) : 0));
+                iLevel = _Quality < (int)ItemQualities.ITEM_QUALITY_RARE ? (pLevel - 60) * 3 + 90 : (pLevel - 60) * 3 + 90 + (pLevel == 70 ? Math.Max(ItemLevel - 115, 0) : 0);
 
             // BonusQuality effect on iLevel
-            iLevel += BonusQuality * 10;
+            // iLevel += BonusQuality * 5;
 
             return iLevel;
         }
