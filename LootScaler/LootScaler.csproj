@@ -136,13 +136,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="filter.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="img\WoW-Burning-crusade-icon.png" />
     <Content Include="World of Warcraft.ico" />

@@ -1,25 +1,16 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Configuration;
 using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using MySql.Data.MySqlClient;
+using System.Diagnostics;
+using System.Globalization;
 //using System.Data.MySqlClient;
 using System.IO;
-using System.Text.RegularExpressions;
-using System.Globalization;
+using System.Linq;
+using System.Text;
 using System.Threading;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Collections.Concurrent;
-using System.Collections;
-using System.Configuration;
-using System.Diagnostics;
+using System.Windows.Forms;
 
 //using System.Windows.Forms;
 
@@ -53,10 +44,11 @@ namespace LootScaler
         static public int connectionTimeout;
         static public int maxThread;
         static public bool garbageCollector;
+        static public bool BonusUpgrade;
+        static public int BonusUpgradeValue;
+        static public UTF8Encoding UTF8NoPreamble = new UTF8Encoding(false);
 
         static Dictionary<int, Item> item_list = new Dictionary<int, Item>();
-        List<Item> done_item_list = new List<Item>();
-
         List<Item> consumables_list = new List<Item>();
         List<Item> weapons_list = new List<Item>();
         List<Item> armors_list = new List<Item>();
@@ -64,22 +56,21 @@ namespace LootScaler
         List<Item> quest_list = new List<Item>();
 
         static public Dictionary<int, Spell> spell_list = new Dictionary<int, Spell>();
-        List<int> safe_list_spells = new List<int>() { 126, 6251, 13049, 16602, 17490, 18307, 18308, 26066, 26391, 89, 1139, 7396, 12686, 13494, 13532, 13533, 15494, 15494, 16053, 16528, 16551, 16927, 16927, 17331, 18797, 21165, 21919, 22640, 22988, 23688, 23701, 23733, 28866, 26108, 23605, 871, 835, 24353, 26467 };
-
         List<int> forbidden_list = new List<int>();
-        List<string> output = new List<string>();
 
         static public Dictionary<int, Enchantment> Enchantment_list = new Dictionary<int, Enchantment>();
         static public Dictionary<int, socketBonus> socketBonus_list = new Dictionary<int, socketBonus>();
+
+        const int MIN_ENTRY_SCALE = 41000;      // Ne jamais toucher !  180  ! Never Change this value !
+        const int MIN_ILEVEL_SCALE = 10;        // Ne jamais toucher !  10   ! Never Change this value !
+        const int MAX_ILEVEL_SCALE = 70;        // Ne jamais toucher !  70   ! Never Change this value !
+        const int MAX_QUALITY_SCALE = 3;        // Ne jamais toucher !  3    ! Never Change this value !
 
         private void Form1_Load(object sender, EventArgs e)
         {
             CorrectNumberFormat();
 
             Process Proc = Process.GetCurrentProcess();
-            long AffinityMask = (long)Proc.ProcessorAffinity;
-            AffinityMask &= 0x0055;
-            Proc.ProcessorAffinity = (IntPtr)AffinityMask;
 
             server = ConfigurationManager.AppSettings["serverIP"];          // realm.rochenoi.re
             database = ConfigurationManager.AppSettings["serverDB"];        // serverValue.Value;
@@ -110,25 +101,12 @@ namespace LootScaler
             MySqlConnection connection2 = new MySqlConnection(connectionString);
             connection2.Open();
 
-            MySqlCommand cmd = new MySqlCommand("SELECT itemID from tbcaowow.aowow_itemscale WHERE forbidden = 1 LIMIT 999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            MySqlCommand cmd = new MySqlCommand("SELECT itemID from tbcaowow.aowow_itemscale WHERE forbidden = 1 LIMIT 999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             MySqlDataReader dataReader = cmd.ExecuteReader();
             Console.WriteLine("Connection to " + server + "...");
-
-            /*
-             CREATE TABLE aowow_itemscale (
-             itemID int(8) NOT NULL,
-             forbidden tinyint(1) DEFAULT '0',
-             comment varchar(80) DEFAULT NULL,
-             PRIMARY KEY (itemID)
-             ) ENGINE=InnoDB DEFAULT CHARSET=utf8
-             */
-
-            /*
-            UPDATE tbcaowow.aowow_itemscale SET COMMENT = (SELECT NAME FROM mangos1.item_template WHERE entry = itemID);
-            DELETE FROM mangos1.item_loot_scale WHERE entry IN (SELECT itemID FROM tbcaowow.aowow_itemscale WHERE forbidden = 1);
-            DELETE FROM mangos2.item_loot_scale WHERE entry IN(SELECT itemID FROM tbcaowow.aowow_itemscale WHERE forbidden = 1);
-            */
 
             while (dataReader.Read())
             {
@@ -141,58 +119,62 @@ namespace LootScaler
 
             Console.WriteLine("Loading tbcaowow.aowow_spell...");
 
-            cmd = new MySqlCommand("SELECT sp.spellID,sd.durationBase,sp.spellname,sp.spelltype,sp.tooltip,sp.effect1BasePoints,sp.effect1DieSides,sp.effect1Aura,sp.effect2Aura,sp.effect3Aura,sp.resistancesID,sp.rangeID,sp.mechanicID,sp.effect1id,sp.effect2id,sp.effect3id,sp.effect1MiscValue,sp.effect2MiscValue,sp.effect3MiscValue,sp.effect1Amplitude,sp.effect2Amplitude,sp.effect3Amplitude,sp.effect1itemtype,sp.effect2itemtype,sp.effect3itemtype,sp.cooldown,sp.effect1triggerspell,sp.effect2triggerspell,sp.effect3triggerspell,sp.effect1ChainTarget,sp.effect2ChainTarget,sp.effect3ChainTarget,sp.manacost,sp.procChance,sp.schoolmask FROM tbcaowow.aowow_spell sp, tbcaowow.aowow_spellduration sd WHERE sp.durationID = sd.durationID LIMIT 999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            cmd = new MySqlCommand("SELECT sp.spellID,sd.durationBase,sp.spellname,sp.spelltype,sp.tooltip,sp.effect1BasePoints,sp.effect1DieSides,sp.effect1Aura,sp.effect2Aura,sp.effect3Aura,sp.resistancesID,sp.rangeID,sp.mechanicID,sp.effect1id,sp.effect2id,sp.effect3id,sp.effect1MiscValue,sp.effect2MiscValue,sp.effect3MiscValue,sp.effect1Amplitude,sp.effect2Amplitude,sp.effect3Amplitude,sp.effect1itemtype,sp.effect2itemtype,sp.effect3itemtype,sp.cooldown,sp.effect1triggerspell,sp.effect2triggerspell,sp.effect3triggerspell,sp.effect1ChainTarget,sp.effect2ChainTarget,sp.effect3ChainTarget,sp.manacost,sp.procChance,sp.schoolmask FROM tbcaowow.aowow_spell sp, tbcaowow.aowow_spellduration sd WHERE sp.durationID = sd.durationID LIMIT 999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             dataReader = cmd.ExecuteReader();
 
             while (dataReader.Read())
             {
-                Spell mainspell = new Spell();
-                mainspell.spellID = int.Parse(dataReader["spellID"].ToString());
-                mainspell.spellname_loc0 = dataReader["spellname"].ToString();
-                mainspell.spelltype = dataReader["spelltype"].ToString();
-                mainspell.tooltip_loc0 = dataReader["tooltip"].ToString();
-                mainspell.effect1BasePoints = int.Parse(dataReader["effect1BasePoints"].ToString());
-                mainspell.effect1DieSides = int.Parse(dataReader["effect1DieSides"].ToString());
+                Spell mainspell = new Spell
+                {
+                    spellID = int.Parse(dataReader["spellID"].ToString()),
+                    spellname_loc0 = dataReader["spellname"].ToString(),
+                    spelltype = dataReader["spelltype"].ToString(),
+                    tooltip_loc0 = dataReader["tooltip"].ToString(),
+                    effect1BasePoints = int.Parse(dataReader["effect1BasePoints"].ToString()),
+                    effect1DieSides = int.Parse(dataReader["effect1DieSides"].ToString()),
 
-                mainspell.effect1Aura = int.Parse(dataReader["effect1Aura"].ToString());
-                mainspell.effect2Aura = int.Parse(dataReader["effect2Aura"].ToString());
-                mainspell.effect3Aura = int.Parse(dataReader["effect3Aura"].ToString());
+                    effect1Aura = int.Parse(dataReader["effect1Aura"].ToString()),
+                    effect2Aura = int.Parse(dataReader["effect2Aura"].ToString()),
+                    effect3Aura = int.Parse(dataReader["effect3Aura"].ToString()),
 
-                mainspell.resistancesID = int.Parse(dataReader["resistancesID"].ToString());
-                mainspell.rangeID = int.Parse(dataReader["rangeID"].ToString());
+                    resistancesID = int.Parse(dataReader["resistancesID"].ToString()),
+                    rangeID = int.Parse(dataReader["rangeID"].ToString()),
 
-                mainspell.effect1id = int.Parse(dataReader["effect1id"].ToString());
-                mainspell.effect2id = int.Parse(dataReader["effect2id"].ToString());
-                mainspell.effect3id = int.Parse(dataReader["effect3id"].ToString());
+                    effect1id = int.Parse(dataReader["effect1id"].ToString()),
+                    effect2id = int.Parse(dataReader["effect2id"].ToString()),
+                    effect3id = int.Parse(dataReader["effect3id"].ToString()),
 
-                mainspell.effect1itemtype = int.Parse(dataReader["effect1itemtype"].ToString());
-                mainspell.effect2itemtype = int.Parse(dataReader["effect2itemtype"].ToString());
-                mainspell.effect3itemtype = int.Parse(dataReader["effect3itemtype"].ToString());
+                    effect1itemtype = int.Parse(dataReader["effect1itemtype"].ToString()),
+                    effect2itemtype = int.Parse(dataReader["effect2itemtype"].ToString()),
+                    effect3itemtype = int.Parse(dataReader["effect3itemtype"].ToString()),
 
-                mainspell.effect1triggerspell = int.Parse(dataReader["effect1triggerspell"].ToString());
-                mainspell.effect2triggerspell = int.Parse(dataReader["effect2triggerspell"].ToString());
-                mainspell.effect3triggerspell = int.Parse(dataReader["effect3triggerspell"].ToString());
+                    effect1triggerspell = int.Parse(dataReader["effect1triggerspell"].ToString()),
+                    effect2triggerspell = int.Parse(dataReader["effect2triggerspell"].ToString()),
+                    effect3triggerspell = int.Parse(dataReader["effect3triggerspell"].ToString()),
 
-                mainspell.cooldown = int.Parse(dataReader["cooldown"].ToString());
+                    cooldown = int.Parse(dataReader["cooldown"].ToString()),
 
-                mainspell.effect1ChainTarget = int.Parse(dataReader["effect1ChainTarget"].ToString());
-                mainspell.effect2ChainTarget = int.Parse(dataReader["effect2ChainTarget"].ToString());
-                mainspell.effect3ChainTarget = int.Parse(dataReader["effect3ChainTarget"].ToString());
+                    effect1ChainTarget = int.Parse(dataReader["effect1ChainTarget"].ToString()),
+                    effect2ChainTarget = int.Parse(dataReader["effect2ChainTarget"].ToString()),
+                    effect3ChainTarget = int.Parse(dataReader["effect3ChainTarget"].ToString()),
 
-                mainspell.mechanicID = int.Parse(dataReader["mechanicID"].ToString());
+                    mechanicID = int.Parse(dataReader["mechanicID"].ToString()),
 
-                mainspell.effect1MiscValue = int.Parse(dataReader["effect1MiscValue"].ToString());
-                mainspell.effect2MiscValue = int.Parse(dataReader["effect2MiscValue"].ToString());
-                mainspell.effect3MiscValue = int.Parse(dataReader["effect3MiscValue"].ToString());
+                    effect1MiscValue = int.Parse(dataReader["effect1MiscValue"].ToString()),
+                    effect2MiscValue = int.Parse(dataReader["effect2MiscValue"].ToString()),
+                    effect3MiscValue = int.Parse(dataReader["effect3MiscValue"].ToString()),
 
-                mainspell.effect1Amplitude = int.Parse(dataReader["effect1Amplitude"].ToString());
-                mainspell.effect2Amplitude = int.Parse(dataReader["effect2Amplitude"].ToString());
-                mainspell.effect3Amplitude = int.Parse(dataReader["effect3Amplitude"].ToString());
+                    effect1Amplitude = int.Parse(dataReader["effect1Amplitude"].ToString()),
+                    effect2Amplitude = int.Parse(dataReader["effect2Amplitude"].ToString()),
+                    effect3Amplitude = int.Parse(dataReader["effect3Amplitude"].ToString()),
 
-                mainspell.duration = int.Parse(dataReader["durationBase"].ToString());
+                    duration = int.Parse(dataReader["durationBase"].ToString())
+                };
                 int manacost = int.Parse(dataReader["manacost"].ToString());
-                mainspell.manacost = (manacost > 0) ? true : false;
+                mainspell.manacost = (manacost > 0);
                 mainspell.procChance = int.Parse(dataReader["procChance"].ToString());
                 mainspell.schoolmask = (SchoolMask)int.Parse(dataReader["schoolmask"].ToString());
 
@@ -206,16 +188,20 @@ namespace LootScaler
 
             Console.WriteLine("Loading aowow_itemrandomproperties...");
 
-            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_itemrandomproperties LIMIT 999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_itemrandomproperties LIMIT 999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             dataReader = cmd.ExecuteReader();
 
             while (dataReader.Read())
             {
-                Enchantment ench = new Enchantment();
-                ench.id = int.Parse(dataReader["id"].ToString());
-                ench.family = int.Parse(dataReader["type"].ToString());
-                ench.name = dataReader["suffix"].ToString();
+                Enchantment ench = new Enchantment
+                {
+                    id = int.Parse(dataReader["id"].ToString()),
+                    family = int.Parse(dataReader["type"].ToString()),
+                    name = dataReader["suffix"].ToString()
+                };
                 ench.value.Add(double.Parse(dataReader["v_green"].ToString()));
                 ench.value.Add(double.Parse(dataReader["v_blue"].ToString()));
                 Enchantment_list.Add(ench.id, ench);
@@ -225,17 +211,21 @@ namespace LootScaler
 
             Console.WriteLine("Loading aowow_itemenchantmet...");
 
-            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_itemenchantmet LIMIT 999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_itemenchantmet LIMIT 999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             dataReader = cmd.ExecuteReader();
 
             while (dataReader.Read())
             {
-                socketBonus socket = new socketBonus();
-                socket.id = int.Parse(dataReader["itemenchantmetID"].ToString());
-                socket.family = int.Parse(dataReader["familyID"].ToString());
-                socket.text = dataReader["text"].ToString();
-                socket.value = double.Parse(dataReader["value"].ToString());
+                socketBonus socket = new socketBonus
+                {
+                    id = int.Parse(dataReader["itemenchantmetID"].ToString()),
+                    family = int.Parse(dataReader["familyID"].ToString()),
+                    text = dataReader["text"].ToString(),
+                    value = double.Parse(dataReader["value"].ToString())
+                };
                 if (socket.value > 0)
                     socketBonus_list.Add(socket.id, socket);
             }
@@ -245,21 +235,25 @@ namespace LootScaler
             Console.WriteLine("Loading item_template...");
 
 
-            cmd = new MySqlCommand("SELECT i.entry, i.patch, i.class, i.subclass, i.name, i.displayid, i.Quality, i.Flags, i.BuyCount, i.BuyPrice, i.SellPrice, i.InventoryType, i.AllowableClass, i.AllowableRace, i.ItemLevel, i.RequiredLevel, i.RequiredSkill, i.RequiredSkillRank, i.requiredspell, i.requiredhonorrank, i.RequiredCityRank, i.RequiredReputationFaction, i.RequiredReputationRank, i.maxcount, i.stackable, i.ContainerSlots, i.stat_type1, i.stat_value1, i.stat_type2, i.stat_value2, i.stat_type3, i.stat_value3, i.stat_type4, i.stat_value4, i.stat_type5, i.stat_value5, i.stat_type6, i.stat_value6, i.stat_type7, i.stat_value7, i.stat_type8, i.stat_value8, i.stat_type9, i.stat_value9, i.stat_type10, i.stat_value10, i.dmg_min1, i.dmg_max1, i.dmg_type1, i.dmg_min2, i.dmg_max2, i.dmg_type2, i.dmg_min3, i.dmg_max3, i.dmg_type3, i.dmg_min4, i.dmg_max4, i.dmg_type4, i.dmg_min5, i.dmg_max5, i.dmg_type5, i.armor, i.holy_res, i.fire_res, i.nature_res, i.frost_res, i.shadow_res, i.arcane_res, i.delay, i.ammo_type, i.RangedModRange, i.spellid_1, i.spelltrigger_1, i.spellcharges_1, i.spellppmRate_1, i.spellcooldown_1, i.spellcategory_1, i.spellcategorycooldown_1, i.spellid_2, i.spelltrigger_2, i.spellcharges_2, i.spellppmRate_2, i.spellcooldown_2, i.spellcategory_2, i.spellcategorycooldown_2, i.spellid_3, i.spelltrigger_3, i.spellcharges_3, i.spellppmRate_3, i.spellcooldown_3, i.spellcategory_3, i.spellcategorycooldown_3, i.spellid_4, i.spelltrigger_4, i.spellcharges_4, i.spellppmRate_4, i.spellcooldown_4, i.spellcategory_4, i.spellcategorycooldown_4, i.spellid_5, i.spelltrigger_5, i.spellcharges_5, i.spellppmRate_5, i.spellcooldown_5, i.spellcategory_5, i.spellcategorycooldown_5, i.bonding, i.description, i.PageText, i.LanguageID, i.PageMaterial, i.startquest, i.lockid, i.Material, i.sheath, i.RandomProperty, i.RandomSuffix, i.block, i.itemset, i.MaxDurability, i.area, i.Map, i.BagFamily, i.TotemCategory, i.socketColor_1, i.socketContent_1, i.socketColor_2, i.socketContent_2, i.socketColor_3, i.socketContent_3, i.socketBonus, i.GemProperties, i.RequiredDisenchantSkill, i.ArmorDamageModifier, i.ScriptName, i.DisenchantID, i.FoodType, i.minMoneyLoot, i.maxMoneyLoot, i.Duration, i.ExtraFlags FROM item_template i WHERE i.entry < 41000 LIMIT 99999999", connection);
-            cmd.CommandTimeout = connectionTimeout;
+            cmd = new MySqlCommand("SELECT i.entry, i.patch, i.class, i.subclass, i.name, i.displayid, i.Quality, i.Flags, i.BuyCount, i.BuyPrice, i.SellPrice, i.InventoryType, i.AllowableClass, i.AllowableRace, i.ItemLevel, i.RequiredLevel, i.RequiredSkill, i.RequiredSkillRank, i.requiredspell, i.requiredhonorrank, i.RequiredCityRank, i.RequiredReputationFaction, i.RequiredReputationRank, i.maxcount, i.stackable, i.ContainerSlots, i.stat_type1, i.stat_value1, i.stat_type2, i.stat_value2, i.stat_type3, i.stat_value3, i.stat_type4, i.stat_value4, i.stat_type5, i.stat_value5, i.stat_type6, i.stat_value6, i.stat_type7, i.stat_value7, i.stat_type8, i.stat_value8, i.stat_type9, i.stat_value9, i.stat_type10, i.stat_value10, i.dmg_min1, i.dmg_max1, i.dmg_type1, i.dmg_min2, i.dmg_max2, i.dmg_type2, i.dmg_min3, i.dmg_max3, i.dmg_type3, i.dmg_min4, i.dmg_max4, i.dmg_type4, i.dmg_min5, i.dmg_max5, i.dmg_type5, i.armor, i.holy_res, i.fire_res, i.nature_res, i.frost_res, i.shadow_res, i.arcane_res, i.delay, i.ammo_type, i.RangedModRange, i.spellid_1, i.spelltrigger_1, i.spellcharges_1, i.spellppmRate_1, i.spellcooldown_1, i.spellcategory_1, i.spellcategorycooldown_1, i.spellid_2, i.spelltrigger_2, i.spellcharges_2, i.spellppmRate_2, i.spellcooldown_2, i.spellcategory_2, i.spellcategorycooldown_2, i.spellid_3, i.spelltrigger_3, i.spellcharges_3, i.spellppmRate_3, i.spellcooldown_3, i.spellcategory_3, i.spellcategorycooldown_3, i.spellid_4, i.spelltrigger_4, i.spellcharges_4, i.spellppmRate_4, i.spellcooldown_4, i.spellcategory_4, i.spellcategorycooldown_4, i.spellid_5, i.spelltrigger_5, i.spellcharges_5, i.spellppmRate_5, i.spellcooldown_5, i.spellcategory_5, i.spellcategorycooldown_5, i.bonding, i.description, i.PageText, i.LanguageID, i.PageMaterial, i.startquest, i.lockid, i.Material, i.sheath, i.RandomProperty, i.RandomSuffix, i.block, i.itemset, i.MaxDurability, i.area, i.Map, i.BagFamily, i.TotemCategory, i.socketColor_1, i.socketContent_1, i.socketColor_2, i.socketContent_2, i.socketColor_3, i.socketContent_3, i.socketBonus, i.GemProperties, i.RequiredDisenchantSkill, i.ArmorDamageModifier, i.ScriptName, i.DisenchantID, i.FoodType, i.minMoneyLoot, i.maxMoneyLoot, i.Duration, i.ExtraFlags FROM item_template i WHERE i.entry < " + MIN_ENTRY_SCALE + " LIMIT 99999999", connection)
+            {
+                CommandTimeout = connectionTimeout
+            };
             dataReader = cmd.ExecuteReader();
 
             if (dataReader != null)
             {
                 while (dataReader.Read())
                 {
-                    Item it = new Item();
-                    it.entry = int.Parse(dataReader["entry"].ToString());
-                    it.patch = int.Parse(dataReader["patch"].ToString());
-                    it.parent_entry = int.Parse(dataReader["entry"].ToString());
-                    it._class = int.Parse(dataReader["class"].ToString());
-                    it.subclass = int.Parse(dataReader["subclass"].ToString());
-                    it.name = (string)(dataReader["name"].ToString());
+                    Item it = new Item
+                    {
+                        entry = int.Parse(dataReader["entry"].ToString()),
+                        patch = int.Parse(dataReader["patch"].ToString()),
+                        parent_entry = int.Parse(dataReader["entry"].ToString()),
+                        _class = int.Parse(dataReader["class"].ToString()),
+                        subclass = int.Parse(dataReader["subclass"].ToString()),
+                        name = (string)(dataReader["name"].ToString())
+                    };
 
                     if (it.name.Contains(' '))
                         it.name_split = it.name.ToLower().Split(' ').ToList();
@@ -339,14 +333,16 @@ namespace LootScaler
 
                         if (spell_list.ContainsKey(spellid))
                         {
-                            Spell sp = new Spell(spell_list[spellid]);
-                            sp.spellID = spellid;
-                            sp.spelltrigger = int.Parse(dataReader["spelltrigger_" + i].ToString());
-                            sp.spellcharges = int.Parse(dataReader["spellcharges_" + i].ToString());
-                            sp.spellppmRate = float.Parse(dataReader["spellppmRate_" + i].ToString());
-                            sp.spellcooldown = int.Parse(dataReader["spellcooldown_" + i].ToString());
-                            sp.spellcategory = int.Parse(dataReader["spellcategory_" + i].ToString());
-                            sp.spellcategorycooldown = int.Parse(dataReader["spellcategorycooldown_" + i].ToString());
+                            Spell sp = new Spell(spell_list[spellid])
+                            {
+                                spellID = spellid,
+                                spelltrigger = int.Parse(dataReader["spelltrigger_" + i].ToString()),
+                                spellcharges = int.Parse(dataReader["spellcharges_" + i].ToString()),
+                                spellppmRate = float.Parse(dataReader["spellppmRate_" + i].ToString()),
+                                spellcooldown = int.Parse(dataReader["spellcooldown_" + i].ToString()),
+                                spellcategory = int.Parse(dataReader["spellcategory_" + i].ToString()),
+                                spellcategorycooldown = int.Parse(dataReader["spellcategorycooldown_" + i].ToString())
+                            };
 
                             it.spells_ori[i - 1] = sp;
                         }
@@ -415,8 +411,10 @@ namespace LootScaler
 
                             if (Enchantment_list.ContainsKey(id))
                             {
-                                Enchantment ench = new Enchantment(Enchantment_list[id]);
-                                ench.chance = chance;
+                                Enchantment ench = new Enchantment(Enchantment_list[id])
+                                {
+                                    chance = chance
+                                };
                                 it.enchantments_ori.Add(ench);
                             }
                         }
@@ -429,8 +427,10 @@ namespace LootScaler
                 }
                 dataReader.Close();
 
-                cmd = new MySqlCommand("SELECT l.entry, l.name_loc2, l.description_loc2 FROM locales_item l WHERE l.entry < 41000", connection);
-                cmd.CommandTimeout = connectionTimeout;
+                cmd = new MySqlCommand("SELECT l.entry, l.name_loc2, l.description_loc2 FROM locales_item l WHERE l.entry < " + MIN_ENTRY_SCALE, connection)
+                {
+                    CommandTimeout = connectionTimeout
+                };
                 dataReader = cmd.ExecuteReader();
 
                 while (dataReader.Read())
@@ -462,8 +462,11 @@ namespace LootScaler
                 groupBox1.Enabled = true;
                 groupBox3.Enabled = true;
 
-                if(garbageCollector)
+                if (garbageCollector)
+                {
                     GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
 
                 BringToFront();
                 Show();
@@ -476,7 +479,7 @@ namespace LootScaler
             int idxStart = src.IndexOf(start);
             if (idxStart != -1)
             {
-                idxStart = idxStart + start.Length;
+                idxStart += start.Length;
                 int idxEnd = src.IndexOf(ended, idxStart);
                 if (idxEnd != -1)
                 {
@@ -490,6 +493,10 @@ namespace LootScaler
 
         private void button1_Click(object sender, EventArgs e)
         {
+            // Settings
+            BonusUpgrade = checkUpgrade.Checked;
+            BonusUpgradeValue = (int)numericUpDown1.Value;
+
             if (weapCheck.Checked)
                 generateScaleGeneric(weapons_list, "weapons");
             if (armorCheck.Checked)
@@ -498,13 +505,8 @@ namespace LootScaler
                 generateScaleFood();
             if (checkDBC.Checked)
                 generateDBC();
-            if (checkJunk.Checked)
-                generateJunk();
             if (checkQUEST.Checked)
                 generateQuest();
-
-            if (garbageCollector)
-                GC.Collect();
 
             CLEAN();
         }
@@ -519,16 +521,16 @@ namespace LootScaler
 
                     if (weapCheck.Checked)
                     {
-                        outputFile.WriteLine("DELETE FROM item_loot_scale;");
-                        outputFile.WriteLine("DELETE FROM item_template WHERE entry > 41000;");
-                        outputFile.WriteLine("DELETE FROM locales_item WHERE entry > 41000;");
-                        outputFile.WriteLine("DELETE FROM item_enchantment_template WHERE entry > 41000;");
+                        outputFile.WriteLine("DELETE FROM scale_loot;");
+                        outputFile.WriteLine("DELETE FROM item_template WHERE entry > " + MIN_ENTRY_SCALE + ";");
+                        outputFile.WriteLine("DELETE FROM locales_item WHERE entry > " + MIN_ENTRY_SCALE + ";");
+                        outputFile.WriteLine("DELETE FROM item_enchantment_template WHERE entry > " + MIN_ENTRY_SCALE + ";");
                     }
 
                     if (consuCheck.Checked)
                     {
                         outputFile.WriteLine("");
-                        outputFile.Write("DELETE FROM item_loot_scale WHERE entry IN (");
+                        outputFile.Write("DELETE FROM scale_loot WHERE entry IN (");
                         foreach (Item it in consumables_list)
                         {
                             outputFile.Write(it.entry);
@@ -552,7 +554,7 @@ namespace LootScaler
             return false;
         }
 
-        List<int> AURA_SAFE = new List<int>{ (int)AuraType.SPELL_AURA_NONE, (int)AuraType.SPELL_AURA_BIND_SIGHT, (int)AuraType.SPELL_AURA_MOD_POSSESS, (int)AuraType.SPELL_AURA_PERIODIC_DAMAGE,
+        readonly List<int> AURA_SAFE = new List<int>{ (int)AuraType.SPELL_AURA_NONE, (int)AuraType.SPELL_AURA_BIND_SIGHT, (int)AuraType.SPELL_AURA_MOD_POSSESS, (int)AuraType.SPELL_AURA_PERIODIC_DAMAGE,
     (int)AuraType.SPELL_AURA_DUMMY, (int)AuraType.SPELL_AURA_MOD_CHARM, (int)AuraType.SPELL_AURA_PERIODIC_HEAL, (int)AuraType.SPELL_AURA_MOD_DAMAGE_DONE,
     (int)AuraType.SPELL_AURA_MOD_DAMAGE_TAKEN, (int)AuraType.SPELL_AURA_DAMAGE_SHIELD, (int)AuraType.SPELL_AURA_OBS_MOD_HEALTH, (int)AuraType.SPELL_AURA_OBS_MOD_MANA,
     (int)AuraType.SPELL_AURA_MOD_RESISTANCE, (int)AuraType.SPELL_AURA_PERIODIC_TRIGGER_SPELL, (int)AuraType.SPELL_AURA_PERIODIC_ENERGIZE, (int)AuraType.SPELL_AURA_MOD_STAT,
@@ -576,18 +578,12 @@ namespace LootScaler
     (int)AuraType.SPELL_AURA_MOD_DAMAGE_DONE_VERSUS, (int)AuraType.SPELL_AURA_DETECT_AMORE, (int)AuraType.SPELL_AURA_ALLOW_CHAMPION_SPELLS, (int)AuraType.SPELL_AURA_AOE_CHARM,
     (int)AuraType.SPELL_AURA_MOD_DEBUFF_RESISTANCE, (int)AuraType.SPELL_AURA_MOD_FLAT_SPELL_DAMAGE_VERSUS, (int)AuraType.SPELL_AURA_MOD_FLAT_SPELL_CRIT_DAMAGE_VERSUS };
 
-        bool isAuraSafe(int EffectApplyAuraName)
-        {
-            return AURA_SAFE.Contains(EffectApplyAuraName);
-        }
-
         List<int> SPELL_EFFECT_RESTRICTED = new List<int> { (int)SpellEffects.SPELL_EFFECT_DUMMY }; // Do not scale those effects
         bool isEffectRestricted(int Effect)
         {
             return SPELL_EFFECT_RESTRICTED.Contains(Effect);
         }
 
-        List<int> AURA_IGNORED = new List<int> { (int)AuraType.SPELL_AURA_MOD_SKILL, (int)AuraType.SPELL_AURA_MOD_SKILL_TALENT }; // Do not scale those effects
         List<int> EFFECT_IGNORED = new List<int> { (int)SpellEffects.SPELL_EFFECT_NONE, (int)SpellEffects.SPELL_EFFECT_ENCHANT_ITEM, (int)SpellEffects.SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY }; // Do not scale those effects
         bool isEffectMiscIgnored(int Effect)
         {
@@ -690,14 +686,14 @@ namespace LootScaler
                             int r_level = item_replacement.RequiredLevel > 0 ? item_replacement.RequiredLevel : item_replacement.ItemLevel - 10;
 
                             if (item_replacement.entry != it.entry && it.ItemLevel != item_replacement.ItemLevel)
-                                if(!tmp_list.ContainsKey(r_level))
+                                if (!tmp_list.ContainsKey(r_level))
                                     tmp_list.Add(r_level, item_replacement.entry);
                         }
 
                         if (tmp_list.Count() > 0)
                         {
                             outputFile.WriteLine("-- REPLACEMENT FOR " + it.name + " [" + it.entry + "]");
-                            outputFile.Write("REPLACE INTO item_loot_scale VALUES ");
+                            outputFile.Write("REPLACE INTO scale_loot VALUES ");
 
                             var last = tmp_list.Last();
                             foreach (var item in tmp_list)
@@ -716,11 +712,11 @@ namespace LootScaler
         }
 
         public static int[] buyprice = new int[] { 0, 36, 71, 71, 88, 206, 380, 399, 538, 1041, 2264, 3429, 5109, 6267, 7377, 9375, 10699, 12471, 14208, 15429, 18197, 20859, 23269, 26712, 27500, 29185, 31948, 34712, 36528, 41695, 48302, 53949, 62051, 72886, 77373, 83183, 90316, 94951, 107665, 121033, 127320, 131048, 142936, 165169, 168534, 180695, 196443, 208389, 220206, 230000, 239377, 245000, 251259, 265320, 279382, 293444, 328092, 365580, 405649, 428242, 454890, 460000, 470000, 480000, 500000, 510000, 520000, 530000, 540000, 550000, 560000, 570000, 886627 };
-        public static int GetPrice(Item it, int RequiredLevel)
+        public static int GetPrice(int BuyPrice, int RequiredLevel, int pLevel)
         {
             double expected_buyprice = buyprice[RequiredLevel];
-            double buyprice_ratio = it.BuyPrice / expected_buyprice;
-            double expected_scaled_buyprice = buyprice[it.RequiredLevel] * buyprice_ratio;
+            double buyprice_ratio = BuyPrice / expected_buyprice;
+            double expected_scaled_buyprice = buyprice[pLevel] * buyprice_ratio;
 
             return (int)(expected_scaled_buyprice);
         }
@@ -754,10 +750,7 @@ namespace LootScaler
                 }
 
                 if (closest_socket.id != 0)
-                {
                     item.socketBonus_new = closest_socket;
-                    // MessageBox.Show("Has '" + current_socket.text + "' (+" + s_current + ")\n" + "Looking for '" + current_socket.text + "' (+" + lookup_value + ")\n" + "Found '" + closest_socket.text + "' (+" + closest_value + ")");
-                }
             }
         }
 
@@ -767,13 +760,13 @@ namespace LootScaler
             double average_e = 0;
 
             foreach (Enchantment e in item.enchantments_ori)
-                average_e += e.value[item.Quality <= 3 ? 0 : 1];
+                average_e += e.value[item.Quality <= (int)ItemQualities.ITEM_QUALITY_RARE ? 0 : 1];
 
             double average_value = Math.Max((average_e / item.enchantments_ori.Count()) * coeffR, 1);
 
             foreach (Enchantment e in item.enchantments_ori)
             {
-                double current_e = e.value[item.Quality <= 3 ? 0 : 1];
+                double current_e = e.value[item.Quality <= (int)ItemQualities.ITEM_QUALITY_RARE ? 0 : 1];
                 double current_value = Math.Max(current_e * coeffR, 1); // valeur recherchée
 
                 double lookup_value = current_value < average_value ? average_value - (current_value * MAX_RPROPERTY_DIF) : average_value + (current_value * MAX_RPROPERTY_DIF);
@@ -784,7 +777,7 @@ namespace LootScaler
 
                 foreach (Enchantment l in Enchantment_list.Values.Where(a => a.family == e.family))
                 {
-                    double l_value = l.value[item.Quality <= 3 ? 0 : 1];
+                    double l_value = l.value[item.Quality <= (int)ItemQualities.ITEM_QUALITY_RARE ? 0 : 1];
                     double diff_value = Math.Abs(l_value - lookup_value);
                     double diff_test2 = diff_value / lookup_value;
 
@@ -814,9 +807,6 @@ namespace LootScaler
             int it_quality = it.Quality;
             int it_ilevel = it.sItemLevel;
 
-            if (it_quality == 5 && it.BonusQuality == 1)
-                it_ilevel += 3;
-
             if (block != 0)
             {
                 if (it_class == 4)
@@ -827,24 +817,24 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 block *= 0.76;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 block *= 0.95;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 if (it_ilevel < 65)
                                     block += 4;
                                 else
                                     block += 5;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 block = 0.00214 * it_ilevel * it_ilevel + 0.897 * it_ilevel - 10;
                                 break;
                         }
@@ -888,7 +878,7 @@ namespace LootScaler
                     break;
             }
 
-            if (it.Quality > 3)
+            if (it.Quality > (int)ItemQualities.ITEM_QUALITY_RARE)
                 expected_armor *= 1.25;
 
             return Convert.ToInt32(expected_armor);
@@ -899,11 +889,7 @@ namespace LootScaler
             double armor = it.armor;
             int it_class = it._class;
             int it_subclass = it.subclass;
-            int it_quality = Math.Min(it.Quality + it.BonusQuality, 5);
-
-
-            if (it_quality == 5 && it.BonusQuality == 1)
-                it_ilevel += 3;
+            int it_quality = it.Quality;
 
             if (armor != 0)
             {
@@ -920,21 +906,21 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.10;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 armor *= (it_ilevel < 93 ? 1.20 : 1.375);
                                 break;
                         }
@@ -951,21 +937,21 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.10;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 armor *= (it_ilevel < 93 ? 1.20 : 1.375);
                                 break;
                         }
@@ -982,21 +968,21 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.10;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 armor *= (it_ilevel < 93 ? 1.20 : 1.375);
                                 break;
                         }
@@ -1013,21 +999,21 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.10;
                                 break;
-                            case 4:
-                            case 5:
-                            case 6:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 armor *= (it_ilevel < 93 ? 1.20 : 1.375);
                                 break;
                         }
@@ -1046,37 +1032,34 @@ namespace LootScaler
 
                         switch (it_quality)
                         {
-                            case 0:
+                            case (int)ItemQualities.ITEM_QUALITY_POOR:
                                 armor *= 0.883;
                                 break;
-                            case 1:
+                            case (int)ItemQualities.ITEM_QUALITY_NORMAL:
                                 armor *= 0.94;
                                 break;
-                            case 2:
+                            case (int)ItemQualities.ITEM_QUALITY_UNCOMMON:
                                 // do nothing
                                 break;
-                            case 3:
+                            case (int)ItemQualities.ITEM_QUALITY_RARE:
                                 armor *= 1.122;
                                 break;
-                            case 4:
+                            case (int)ItemQualities.ITEM_QUALITY_EPIC:
                                 armor *= 1.25;
                                 break;
-                            case 5:
-                            case 6:
-
+                            case (int)ItemQualities.ITEM_QUALITY_LEGENDARY:
+                            case (int)ItemQualities.ITEM_QUALITY_ARTIFACT:
                                 if (it_ilevel >= 90 && it_ilevel <= 92)
                                     armor = 221 * it_ilevel - 16396;
                                 else if (it_ilevel > 93)
                                     armor *= 1.436;
                                 else
                                     armor *= 1.25;
-
                                 break;
                         }
                     }
                 }
             }
-
 
             armor = SetArmorFactor(it, armor);  // Allow the proper ammount of armor relative to the slot mod.
             return (int)armor;
@@ -1087,9 +1070,6 @@ namespace LootScaler
             int it_class = it._class;
             int it_subclass = it.subclass;
             int it_quality = it.Quality;
-
-            if (it_quality == 5 && it.BonusQuality == 1)
-                it_ilevel += 3;
 
             if (Force1H)
             {
@@ -1103,7 +1083,7 @@ namespace LootScaler
             {
                 if (new[] { 0, 4, 7, 13, 15 }.Contains(it_subclass)) // one handed + fist + dagger OK
                 {
-                    if (it_quality == 0)
+                    if (it_quality == (int)ItemQualities.ITEM_QUALITY_POOR)
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1119,7 +1099,7 @@ namespace LootScaler
                         dps *= 0.65;
 
                     }
-                    else if (it_quality == 1)
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_NORMAL)
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1134,7 +1114,7 @@ namespace LootScaler
 
                         dps *= 0.90;
                     }
-                    else if (it_quality == 2) // green
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1147,7 +1127,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 0.6333 * it_ilevel - 10.7;
                     }
-                    else if (it_quality == 3) // blue
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue
                     {
                         if (it_ilevel < 32)
                             dps = 0.518 * it_ilevel + 3.14;
@@ -1160,7 +1140,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 0.7488 * it_ilevel - 14.4905;
                     }
-                    else if (it_quality >= 4) // epic
+                    else if (it_quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) // epic
                     {
                         if (it_ilevel < 92)
                             dps = 1.466769 + 1.092133 * it_ilevel - 0.0133254145 * it_ilevel * it_ilevel + 0.00011351298 * it_ilevel * it_ilevel * it_ilevel;
@@ -1172,7 +1152,7 @@ namespace LootScaler
                 }
                 else if (new[] { 1, 5, 8, 10, 17, 20 }.Contains(it_subclass)) // two handed + staff + spear + fishing pole OK
                 {
-                    if (it_quality == 0)
+                    if (it_quality == (int)ItemQualities.ITEM_QUALITY_POOR)
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1188,7 +1168,7 @@ namespace LootScaler
                         dps *= 1.30 * 0.65;
 
                     }
-                    else if (it_quality == 1)
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_NORMAL)
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1203,7 +1183,7 @@ namespace LootScaler
 
                         dps *= 1.30 * 0.90;
                     }
-                    else if (it_quality == 2) // green
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
                     {
                         if (it_ilevel < 35)
                             dps = 0.513 * it_ilevel + 0.3;
@@ -1218,7 +1198,7 @@ namespace LootScaler
 
                         dps *= 1.30;
                     }
-                    else if (it_quality == 3) // blue
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue
                     {
                         if (it_ilevel < 72)   //Vanilla
                             dps = 0.86 * it_ilevel;
@@ -1227,7 +1207,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 1.3 * (0.7488 * it_ilevel - 14.4905);
                     }
-                    else if (it_quality >= 4) // epic
+                    else if (it_quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) // epic
                     {
                         if (it_ilevel < 92)
                             dps = 1.305 * (1.466769 + 1.092133 * it_ilevel - 0.0133254145 * it_ilevel * it_ilevel + 0.00011351298 * it_ilevel * it_ilevel * it_ilevel);
@@ -1240,7 +1220,7 @@ namespace LootScaler
                 }
                 else if (new[] { 2, 3, 18, 16 }.Contains(it_subclass)) // ranged (bow, gun, crossbow) & thrown (too many differents cases for thrown...)
                 {
-                    if (it_quality == 0)
+                    if (it_quality == (int)ItemQualities.ITEM_QUALITY_POOR)
                     {
                         if (it_ilevel < 37)
                             dps = 0.407 * it_ilevel - 0.142;
@@ -1254,7 +1234,7 @@ namespace LootScaler
                         dps *= 0.65;
 
                     }
-                    else if (it_quality == 1)
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_NORMAL)
                     {
                         if (it_ilevel < 37)
                             dps = 0.407 * it_ilevel - 0.142;
@@ -1267,7 +1247,7 @@ namespace LootScaler
 
                         dps *= 0.90;
                     }
-                    else if (it_quality == 2) // green
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
                     {
                         if (it_ilevel < 37)
                             dps = 0.407 * it_ilevel - 0.142;
@@ -1279,7 +1259,7 @@ namespace LootScaler
                             dps = 0.5 * it_ilevel + 1.4;
 
                     }
-                    else if (it_quality == 3) // blue 
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue 
                     {
                         if (it_ilevel < 30)
                             dps = 0.41 * it_ilevel + 2.33;
@@ -1290,7 +1270,7 @@ namespace LootScaler
                         else if (it_ilevel >= 79) // tbc
                             dps = 0.58 * it_ilevel - 0.3;
                     }
-                    else if (it_quality >= 4) // epic
+                    else if (it_quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) // epic
                     {
                         if (it_ilevel < 88)
                             dps = 2.38 + 0.426 * it_ilevel + 0.00807 * it_ilevel * it_ilevel - 0.000187 * it_ilevel * it_ilevel * it_ilevel + 0.00000135 * it_ilevel * it_ilevel * it_ilevel * it_ilevel;
@@ -1304,7 +1284,7 @@ namespace LootScaler
                 // }
                 else if (new[] { 19 }.Contains(it_subclass)) // wand OK
                 {
-                    if (it_quality == 0)
+                    if (it_quality == (int)ItemQualities.ITEM_QUALITY_POOR)
                     {
                         if (it_ilevel < 85)
                             dps = 0.372 + 0.668 * it_ilevel + 0.00338 * it_ilevel * it_ilevel;
@@ -1316,7 +1296,7 @@ namespace LootScaler
                         dps *= 0.65;
 
                     }
-                    else if (it_quality == 1)
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_NORMAL)
                     {
                         if (it_ilevel < 85)
                             dps = 0.372 + 0.668 * it_ilevel + 0.00338 * it_ilevel * it_ilevel;
@@ -1327,7 +1307,7 @@ namespace LootScaler
 
                         dps *= 0.90;
                     }
-                    else if (it_quality == 2) // green
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
                     {
                         if (it_ilevel < 85)
                             dps = 0.372 + 0.668 * it_ilevel + 0.00338 * it_ilevel * it_ilevel;
@@ -1336,7 +1316,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 1.77 * (0.6333 * it_ilevel - 10.7);
                     }
-                    else if (it_quality == 3) // blue
+                    else if (it_quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue
                     {
                         if (it_ilevel < 80)   //Vanilla
                             dps = 4.93 + 0.83 * it_ilevel - 0.00346 * it_ilevel * it_ilevel + 0.0000822 * it_ilevel * it_ilevel * it_ilevel;
@@ -1345,7 +1325,7 @@ namespace LootScaler
                         else if (it_ilevel >= 97)
                             dps = 1.8 * (0.7488 * it_ilevel - 14.4905);
                     }
-                    else if (it_quality >= 4) // epic
+                    else if (it_quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) // epic
                     {
                         if (it_ilevel < 60)
                             dps = 1.15 * (4.93 + 0.83 * it_ilevel - 0.00346 * it_ilevel * it_ilevel + 0.0000822 * it_ilevel * it_ilevel * it_ilevel);
@@ -1466,11 +1446,11 @@ namespace LootScaler
 
         private static double getCoeffA(int ilvl, int quality)
         {
-            if (quality <= 2)
+            if (quality < (int)ItemQualities.ITEM_QUALITY_RARE)
                 return 2.0;
-            if (quality == 3)
+            if (quality == (int)ItemQualities.ITEM_QUALITY_RARE)
                 return 1.8;
-            if (quality >= 4)
+            if (quality > (int)ItemQualities.ITEM_QUALITY_RARE)
             {
                 if (ilvl < 95)
                     return 1.7;
@@ -1482,11 +1462,11 @@ namespace LootScaler
 
         private static double getCoeffB(int ilvl, int quality)
         {
-            if (quality <= 2)
+            if (quality < (int)ItemQualities.ITEM_QUALITY_RARE)
                 return 8.0;
-            if (quality == 3)
+            if (quality == (int)ItemQualities.ITEM_QUALITY_RARE)
                 return 0.75;
-            if (quality >= 4)
+            if (quality > (int)ItemQualities.ITEM_QUALITY_RARE)
             {
                 if (ilvl < 95)
                     return -10.0;
@@ -1496,27 +1476,19 @@ namespace LootScaler
             return 8.0;
         }
 
-        List<int> stat_type = new List<int>(new int[Item.ITEM_MOD_MAX]);
-        List<int> spells_values = new List<int>(new int[Item.SPELL_MOD_MAX]);
-
         static double alpha = 1.705;
 
         private static double getCoeffR(int ilevel_in, int ilevel_out, int quality_in, int quality_out)
         {
-            int BonusLvl = 0;
-            if (quality_out == 5 && quality_in == 4)
-                BonusLvl = 9;
-
             double origin_coeffA = getCoeffA(ilevel_in, quality_in);
             double origin_coeffB = getCoeffB(ilevel_in, quality_in);
 
-            double it_coeffA1 = getCoeffA(ilevel_out + BonusLvl, quality_out);
-            double it_coeffB1 = getCoeffB(ilevel_out + BonusLvl, quality_out);
+            double it_coeffA1 = getCoeffA(ilevel_out, quality_out);
+            double it_coeffB1 = getCoeffB(ilevel_out, quality_out);
 
-            double coeffR1 = ((ilevel_out + BonusLvl - it_coeffB1) / it_coeffA1) / ((ilevel_in - origin_coeffB) / origin_coeffA);  // coeffR en prennant en compte un eventuel quality bonus
+            double coeffR1 = ((ilevel_out - it_coeffB1) / it_coeffA1) / ((ilevel_in - origin_coeffB) / origin_coeffA);  // coeffR en prennant en compte un eventuel quality bonus
 
             return double.IsInfinity(coeffR1) ? 1 : coeffR1;
-
         }
 
         public static void ScaleItem(ref Item it, Item it_ori)
@@ -1553,18 +1525,9 @@ namespace LootScaler
             double dps_expect = GetDps(it_ori, it.ItemLevel);
             double dps_origin = (it_ori.delay < 1) ? 0 : 1000.0 * (it_ori.damages_ori[0].max + it_ori.damages_ori[0].min) / (2 * (double)it_ori.delay);
 
-            // Doing work on damage sacrifice
-            double dps_onehan = 0;
-            double dps_sacrif = dps_scaled;
-
-            bool IsDpsSac = false;
-
             // DPS Sacrifice
             if (it._class == 2)
             {
-                double Expected_OriWeaponSpell = 0;
-                double Expected_OriWeaponHeal = 0;
-
                 // DPS sacrifice : Start
                 // Cette partie doit passer avant le pathing
                 // Cette partie permet de déterminer si l'arme est une arme caster/healer/druid
@@ -1577,8 +1540,14 @@ namespace LootScaler
                 // A la fin, les deux valeurs sont à additionner. (Cette gestion est un peu comparable au bonus armor).
                 if (it_ori._class == 2) // weapons
                 {
+                    double dps_sacrif;
+                    double Expected_OriWeaponSpell;
+                    double Expected_OriWeaponHeal;
                     if (new[] { 1, 5, 8, 10, 17, 20 }.Contains(it_ori.subclass))  //2H weap    //dps_origin  < dps_expect && 
                     {
+
+                        // Doing work on damage sacrifice
+                        double dps_onehan;
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("SPELLDMG", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_CASTER_WEAP] == 1)
                         {
                             // Reduce weap DPS and Add Spell damage
@@ -1590,8 +1559,6 @@ namespace LootScaler
                             Expected_OriWeaponSpell = Math.Round(4 * (dps_expect - dps_origin));
                             spells_malus[(int)SpellType.SPELLDMG] = Math.Max(Expected_OriWeaponSpell, 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
 
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("HEAL", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_HEALER_WEAP] == 1)
@@ -1604,8 +1571,6 @@ namespace LootScaler
                             Expected_OriWeaponHeal = Math.Round(7.5 * (dps_expect - dps_origin));
                             spells_malus[(int)SpellType.HEAL] = Math.Max(Expected_OriWeaponHeal, 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
 
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("ATTACKPWR_FERAL", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_DRUID_WEAP] == 1)
@@ -1615,8 +1580,6 @@ namespace LootScaler
                             dps_sacrif = Math.Min(dps_scaled, 0.3 * dps_onehan + 41.5);
                             spells_bonus[(int)SpellType.ATTACKPWR_FERAL] = Math.Max(Math.Round(18.37 * (dps_scaled - dps_sacrif) - 12.4843), 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
                     }
                     else if (new[] { 0, 4, 7, 13, 15 }.Contains(it_ori.subclass))   //1H weap
@@ -1631,8 +1594,6 @@ namespace LootScaler
 
                             spells_malus[(int)SpellType.SPELLDMG] = Math.Max(Expected_OriWeaponSpell, 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
 
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("HEAL", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_HEALER_WEAP] == 1)  //Attention, il faut rajouter une condition sur les sorts présents (spell / heal /feral attackpower)
@@ -1643,8 +1604,6 @@ namespace LootScaler
                             Expected_OriWeaponHeal = Math.Round(7.5 * (dps_expect - dps_origin));
                             spells_malus[(int)SpellType.HEAL] = Math.Max(Expected_OriWeaponHeal, 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
 
                         if ((dps_origin + 1 < dps_expect && it.GetSpellValue("ATTACKPWR_FERAL", 0) != 0) || it.pathing_stat[Item.ITEM_MOD_DRUID_WEAP] == 1)  //Attention, il faut rajouter une condition sur les sorts présents (spell / heal /feral attackpower)
@@ -1652,18 +1611,10 @@ namespace LootScaler
                             dps_sacrif = Math.Min(dps_scaled, 41.5);
                             spells_bonus[(int)SpellType.ATTACKPWR_FERAL] = Math.Max(Math.Round(18.37 * (dps_scaled - dps_sacrif) - 12.4843), 0);
                             dps_scaled = dps_sacrif; // si l'objet posséde un dps sacrifice, on réécrit son dps_scaled
-
-                            IsDpsSac = true;
                         }
                     }
                 }
             }
-
-            //Doing work on weapon DPS
-            //Weapon Damage Scaling
-            double MainDmgMin = 0;
-            double MainDmgMax = 0;
-            bool IsDmgBQWritten = false;
 
             for (int i = 0; i < 5; i++)
             {
@@ -1671,27 +1622,10 @@ namespace LootScaler
                 Damage new_dmg = new Damage(old_dmg.min, old_dmg.max, old_dmg.type);
                 double reste = Math.Max(dps_scaled - dps_scaledNoBQ, 0);
 
-                if (i == 0)
-                {
-                    MainDmgMin = new_dmg.min;
-                    MainDmgMax = new_dmg.max;
-                }
-
                 if (dps_expect != 0)
                 {
                     new_dmg.min = (int)(new_dmg.min * (dps_scaledNoBQ + 0.3 * reste) / dps_expect);
                     new_dmg.max = (int)(new_dmg.max * (dps_scaledNoBQ + 0.3 * reste) / dps_expect);
-                }
-
-                if (it.Quality == 5 && it.BonusQuality == 1 && IsDpsSac == false && IsDmgBQWritten == false)
-                {
-                    if (new_dmg.max == 0)
-                    {
-                        new_dmg.min = (int)(MainDmgMin * 0.7 * reste / dps_expect);
-                        new_dmg.max = (int)(MainDmgMax * 0.7 * reste / dps_expect);
-                        new_dmg.type = (it_ori.entry % 6) + 1;
-                        IsDmgBQWritten = true;
-                    }
                 }
 
                 new_dmg.min = double.IsNaN(new_dmg.min) ? 0 : (new_dmg.min);
@@ -1737,7 +1671,7 @@ namespace LootScaler
                 it.SetItemResValue(ResName, (int)(ResValue * coeffR));
             }
 
-            if (it.Quality > 1 && it.Quality < 6 && (it._class == 4 || it._class == 2))
+            if (it.Quality > (int)ItemQualities.ITEM_QUALITY_NORMAL && it.Quality < (int)ItemQualities.ITEM_QUALITY_ARTIFACT && (it._class == 4 || it._class == 2))
             {
                 // Doing work on Pathing
                 double coeffK = 0;
@@ -1775,7 +1709,6 @@ namespace LootScaler
                         {
                             int indPathing = j + (SPELL_MOD_TYPE + (SPELL_MOD_TYPE == 0 ? 0 : 2)) * 10;     //Dirty fix to get the proper index of pathing_spell since pathing_spell and spell_type doesn't share the same structure.
 
-                            string spell_type = Item.spell_types[SPELL_MOD_TYPE].ElementAt(j).Value.name;
                             int spell_id = Item.spell_types[SPELL_MOD_TYPE].ElementAt(j).Key;
 
                             double spell_weigth = Math.Pow(Item.spell_types[SPELL_MOD_TYPE].ElementAt(j).Value.weigth, alpha);
@@ -1795,14 +1728,13 @@ namespace LootScaler
                 int TempLvl = Math.Max(it_ori.ItemLevel, 65);
                 double t_coeffR = getCoeffR(it_ori.ItemLevel, TempLvl, it_ori.Quality, it_ori.Quality);
                 double t_coeffK = coeffP2 * Math.Pow(t_coeffR / coeffR, alpha);   //P ou P2 ??
-                double redoStat2 = 0;
-                double MOD_WEIGHT = 0;
                 double coeffKreduit = 0;
 
                 for (int i = Item.ITEM_MOD_DEFENSE_SKILL_RATING; i < Item.ITEM_MOD_LAST; i++)
                 {
                     if (it.pathing_stat[i] != 0)
                     {
+                        double MOD_WEIGHT;
                         switch (i)
                         {
                             case Item.ITEM_MOD_CRIT_MELEE_RATING: MOD_WEIGHT = 14; break;
@@ -1822,7 +1754,7 @@ namespace LootScaler
                         }
 
                         // A REVOIR : la valeur de la stat ajouter est trop élevé (elle devrait être égal au poid au lvl 60)
-                        redoStat2 = Math.Max(Math.Pow((1 - Math.Pow(MOD_WEIGHT, alpha) / t_coeffK), (1 / alpha)), 0.70);    //On réduit les stats d'au maximum 30%
+                        double redoStat2 = Math.Max(Math.Pow((1 - Math.Pow(MOD_WEIGHT, alpha) / t_coeffK), (1 / alpha)), 0.70);
 
                         if (double.IsNaN(redoStat2))
                             continue;
@@ -1833,7 +1765,6 @@ namespace LootScaler
                             stats_redo[j] *= redoStat2;
                         }
 
-                        int mod_value = it.GetItemModValue(i);
                         int s_mod_value = Convert.ToInt32(Math.Pow(coeffKreduit * (1 - Math.Pow(redoStat2, alpha)), (1 / alpha)));
                         it.SetItemModValue(i, s_mod_value);
                     }
@@ -1841,7 +1772,6 @@ namespace LootScaler
 
                 for (int i = Item.ITEM_MOD_AGILITY; i <= Item.ITEM_MOD_STAMINA; i++)
                 {
-                    int mod_value = it.GetItemModValue(i);
                     int s_mod_value = Convert.ToInt32(stats_redo[i]);
                     it.SetItemModValue(i, s_mod_value);
                 }
@@ -1876,7 +1806,6 @@ namespace LootScaler
                 int socketRedCount = it.socketColor_1 == 2 ? 1 : 0 + it.socketColor_2 == 2 ? 1 : 0 + it.socketColor_3 == 2 ? 1 : 0;
                 int socketYellowCount = it.socketColor_1 == 4 ? 1 : 0 + it.socketColor_2 == 4 ? 1 : 0 + it.socketColor_3 == 4 ? 1 : 0;
                 int socketBlueCount = it.socketColor_1 == 8 ? 1 : 0 + it.socketColor_2 == 8 ? 1 : 0 + it.socketColor_3 == 8 ? 1 : 0;
-                int socketCount = socketMetaCount + socketRedCount + socketYellowCount + socketBlueCount;
 
                 int has_dodge = it.GetItemModValue(Item.ITEM_MOD_DODGE_RATING);
                 int has_parry = it.GetItemModValue(Item.ITEM_MOD_PARRY_RATING);
@@ -1979,16 +1908,10 @@ namespace LootScaler
             }
         }
 
-        public static int getScaledId(int entry, int BonusQuality, int ilevel)
+        public static int getScaledId(int entry, int BonusQuality, int level)
         {
-            //BonusQuality vaut 0 ou 1 si on veut garder la qualité de l'item identique ou la booster de 1.
-            return (41000 + entry * quality_max * ilevel_max + BonusQuality * ilevel_max + ilevel);  //NEVER EVER CHANGE THIS FUNCTION.
+            return (MIN_ENTRY_SCALE + entry * MAX_QUALITY_SCALE * MAX_ILEVEL_SCALE + BonusQuality * MAX_ILEVEL_SCALE + level);  //NEVER EVER CHANGE THIS FUNCTION.
         }
-
-        static int ilevel_max = 180;   // Ne jamais toucher !  180  ! Never Change this value !
-        static int ilevel_min = 10;    // Ne jamais toucher !  12   ! Never Change this value !
-        static int quality_max = 2;    // Ne jamais toucher !  2    ! Never Change this value !
-        static int BonusLvlHero = 3;
 
         public void generateDBC()
         {
@@ -2003,8 +1926,10 @@ namespace LootScaler
                 MySqlConnection connection = new MySqlConnection(connectionString);
                 connection.Open();
 
-                MySqlCommand cmd = new MySqlCommand("SELECT i.entry, i.displayid, i.InventoryType, i.sheath FROM item_template i LIMIT 99999999", connection);
-                cmd.CommandTimeout = connectionTimeout;
+                MySqlCommand cmd = new MySqlCommand("SELECT i.entry, i.displayid, i.InventoryType, i.sheath FROM item_template i LIMIT 99999999", connection)
+                {
+                    CommandTimeout = connectionTimeout
+                };
                 MySqlDataReader dataReader = cmd.ExecuteReader();
 
                 if (dataReader != null)
@@ -2027,95 +1952,29 @@ namespace LootScaler
             }
         }
 
-        public void generateJunk()
-        {
-            Console.Write("Processing junk_list...");
-
-            foreach (Item item in junk_list.Where(a => (filter.Items.Count == 0) || filter.Items.Count != 0 && filter.Items.Contains(a.entry)))
-            {
-                item.wip_item_list.Clear();
-                for (int ilevel = 10; ilevel <= 70; ilevel += 5)
-                {
-                    Item it = new Item(item);
-
-                    it.name = it.name.Replace("\"", "\\\"");
-                    it.description = it.description.Replace("\"", "\\\"");
-
-                    if (it.name_loc2 != null)
-                        it.name_loc2 = it.name_loc2.Replace("\"", "\\\"");
-                    if (it.description_loc2 != null)
-                        it.description_loc2 = it.description_loc2.Replace("\"", "\\\"");
-
-                    it.sItemLevel = ilevel;
-
-                    it.entry = getScaledId(item.entry, 0, ilevel); // 0 : Bonus Quality
-                    it.BuyPrice = item.SellPrice != 0 ? GetPrice(it, item.RequiredLevel) : 0;
-                    it.SellPrice = it.BuyPrice / 5;
-
-                    // Last step
-                    it.Generate();
-                    item.wip_item_list.Add(it);
-                }
-
-                UTF8Encoding UTF8NoPreamble = new UTF8Encoding(false);
-                using (StreamWriter outputFile = new StreamWriter(new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "099_junk.sql"), FileMode.Append), UTF8NoPreamble))
-                {
-                    Item last = item.wip_item_list.OrderBy(b => b.entry).Last();
-                    outputFile.Write("REPLACE INTO item_template VALUES ");
-
-                    foreach (Item it in item.wip_item_list)
-                    {
-                        outputFile.Write(it.ToString());
-                        if (it.Equals(last))
-                            outputFile.Write(";\n");
-                        else
-                            outputFile.Write(",\n");
-                    }
-
-                    outputFile.Write("REPLACE INTO item_loot_scale VALUES ");
-                    foreach (Item it in item.wip_item_list)
-                    {
-                        if (it.Equals(last))
-                            outputFile.Write("(" + item.entry + ", " + it.entry + ", " + it.sItemLevel + ");\n");
-                        else
-                            outputFile.Write("(" + item.entry + ", " + it.entry + ", " + it.sItemLevel + "),");
-                    }
-                }
-                Console.Write(".");
-            }
-            Console.WriteLine();
-        }
-
-        public static int GetIlvlFromLvl(int lvlp, Item it)
-        {
-            if (lvlp < 61)
-                return lvlp + 5 + (it.ItemLevel > 92 ? 0 : (lvlp == 60 ? Math.Max(it.ItemLevel - 65, 0) : 0));
-            else
-                return (it.Quality < 3 ? (lvlp - 60) * 3 + 90 : (lvlp - 60) * 3 + 85 + (lvlp == 70 ? Math.Max(it.ItemLevel - 115, 0) : 0));
-        }
-
-        //public int BonusQuality = 0;
-
         public static int ComputeRequiredLevel(Item it)
         {
+            if (it.RequiredLevel != 0)
+                return it.RequiredLevel;
+
             int RequiredLevel = it.sItemLevel - 5;
             int ilevel = it.sItemLevel;
 
-            if (it.Quality <= 2) // green
+            if (it.Quality <= (int)ItemQualities.ITEM_QUALITY_UNCOMMON) // green
             {
                 if (ilevel <= 70)
                     RequiredLevel = ilevel - 5; // vanilla
                 else
                     RequiredLevel = Math.Min((ilevel - 90) / 3 + 60, 70); // tbc
             }
-            else if (it.Quality == 3) // blue
+            else if (it.Quality == (int)ItemQualities.ITEM_QUALITY_RARE) // blue
             {
                 if (ilevel <= 80)
                     RequiredLevel = Math.Min(ilevel - 5, 60); // vanilla
                 else
                     RequiredLevel = Math.Min((ilevel - 85) / 3 + 60, 70); // tbc
             }
-            else if (it.Quality >= 4) //purple/ orange / red
+            else if (it.Quality >= (int)ItemQualities.ITEM_QUALITY_EPIC) //purple/ orange / red
             {
                 if (ilevel <= 93)
                     RequiredLevel = Math.Min(ilevel - 5, 60); // vanilla
@@ -2128,6 +1987,8 @@ namespace LootScaler
 
         public static void DoWork(object data)
         {
+            Thread.BeginThreadAffinity();
+
             threadcount++;
 
             Item item = item_list[(int)data];
@@ -2136,158 +1997,122 @@ namespace LootScaler
             item.ConvertSpellInModRating();
 
             if (item.patch <= (int)WowPatch.WOW_PATCH_112)  //Pas de Pathing pour les items TBC 
-                if (!(item.ItemLevel >= 66 && item.ItemLevel <= 92 && item.Quality > 3))  //Pas de Pathing pour les items de raid vanila
+                if (!(item.ItemLevel >= 66 && item.ItemLevel <= 92 && item.Quality > (int)ItemQualities.ITEM_QUALITY_RARE))  //Pas de Pathing pour les items de raid vanila
                     item.GeneratePathing();
 
-            if (item.Quality <= 4) //Pas de changement de spell pour les items de qualité épic et sup (>=4)
+            if (item.Quality < (int)ItemQualities.ITEM_QUALITY_LEGENDARY) //Pas de changement de spell pour les items de qualité épic et sup (>=4)
                 item.GenerateSpellShortList();
 
-            //Work On loopmin and max
-            item.loopmin = ilevel_min;
-            item.loopmax = ilevel_max;
-
-            switch (item.Quality)   //Filter to reduce the number of items scaled. 
-            {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                    item.loopmax = 125;
-                    break;
-                case 5:
-                case 4:
-                    item.loopmax = 150;
-                    if (item.patch > (int)WowPatch.WOW_PATCH_112) // TBC Raid Items
-                    {
-                        if (item.ItemLevel >= 100)
-                        {
-                            item.loopmin = item.ItemLevel;
-                            item.loopmax = item.ItemLevel + 10;
-                        }
-                    }
-                    else // VANILLA Raid Items
-                    {
-                        if (item.ItemLevel >= 66 && item.ItemLevel <= 92)
-                        {
-                            item.loopmin = item.ItemLevel;// item.ItemLevel;
-                            item.loopmax = 120;// loop_min;
-                        }
-                    }
-                    break;
-                case 6:
-                    item.loopmin = item.ItemLevel;
-                    item.loopmax = item.loopmin + 10;
-                    break;
-            }
-
-            item.loopmin = Math.Max(ilevel_min, item.loopmin);
-            item.loopmax = Math.Min(ilevel_max, item.loopmax);
-
-            // work on ilvl list
-            List<int> ilvlList = new List<int>();
-
-            for (int lvlp = 10; lvlp <= 70; lvlp++)
-            {
-                int ilvlAdd = GetIlvlFromLvl(lvlp, item);
-                if (ilvlAdd >= item.loopmin && ilvlAdd <= item.loopmax)
-                    ilvlList.Add(GetIlvlFromLvl(lvlp, item));
-            }
-
-            ilvlList = ilvlList.Distinct().ToList();
+            // Work on RequiredLevel
+            item.RequiredLevel = ComputeRequiredLevel(item);
 
             // Work on bonus armor
             int expect_armor = GetArmor(item, item.ItemLevel);
             item.bonus_armor = Math.Max(item.armor - expect_armor, 0);
 
+            int itBonusQuality = (BonusUpgrade ? BonusUpgradeValue : 0);
+
+            if (item.Quality >= (int)ItemQualities.ITEM_QUALITY_EPIC)
+                itBonusQuality = 0; // Do not create Legendary, Artifacts
+            else if (item.Quality <= (int)ItemQualities.ITEM_QUALITY_NORMAL)
+                itBonusQuality = 0; // Do not upgrade Poor, Common
+            else if (item.Quality == (int)ItemQualities.ITEM_QUALITY_RARE)
+                itBonusQuality = itBonusQuality == 2 ? 1 : itBonusQuality;
+
             // Main loops on bonus quality and ilvl
-            for (item.BonusQuality = 0; item.BonusQuality <= 0; item.BonusQuality++)
+            item.wip_item_list.Clear();
+            for (int BonusQuality = 0; BonusQuality <= itBonusQuality; BonusQuality++)
             {
-                foreach (int ilevel in ilvlList) // for (int ilevel = item.loopmin; ilevel <= item.loopmax; ilevel++)
+                int itQuality = item.Quality + BonusQuality;
+                List<Item> itemlist = new List<Item>();
+
+                for (int pLevel = MIN_ILEVEL_SCALE; pLevel <= MAX_ILEVEL_SCALE; pLevel++)
                 {
-                    Item it = new Item(item);
+                    // temporary compute
+                    string Name = item.name.Replace("\"", "\\\"");
+                    string Description = item.description.Replace("\"", "\\\"");
+                    int ItemLevel = item.GetIlvlFromLvl(itQuality, pLevel, BonusQuality);
+                    int Entry = getScaledId(item.entry, BonusQuality, pLevel);
+                    int BuyPrice = item.BuyPrice != 0 ? GetPrice(item.BuyPrice, item.RequiredLevel, pLevel) : 0;
+                    int SellPrice = item.BuyPrice != 0 ? BuyPrice / 5 : 0;
+                    int ItemSet = ItemLevel >= item.ItemLevel ? item.itemset : 0;
+                    int DisenchantID = itQuality <= (int)ItemQualities.ITEM_QUALITY_EPIC ? item.DisenchantID : 0;
 
-                    //Work on bonusQuality
-                    it.Quality = Math.Min(item.Quality + item.BonusQuality, 5); //On ne crée pas d'item artifact
-                    if (item.BonusQuality == 1 && it.Quality > 4)   //Il faut mettre l'enchant ID à 0 pour les items legendaires et artifacts
-                        it.DisenchantID = 0;
-
-                    it.name = it.name.Replace("\"", "\\\"");
-                    it.description = it.description.Replace("\"", "\\\"");
-
-                    if (it.name_loc2 != null)
-                        it.name_loc2 = it.name_loc2.Replace("\"", "\\\"");
-                    if (it.description_loc2 != null)
-                        it.description_loc2 = it.description_loc2.Replace("\"", "\\\"");
-
-                    it.sItemLevel = ilevel;
-                    it.RequiredLevel = ComputeRequiredLevel(it);
-                    item.RequiredLevel = ComputeRequiredLevel(item);
-
-                    it.entry = getScaledId(item.entry, item.BonusQuality, ilevel); // 0 : Bonus Quality
-                    it.BuyPrice = item.SellPrice != 0 ? GetPrice(it, item.RequiredLevel) : 0;
-                    it.SellPrice = it.BuyPrice / 5;
+                    Item it = new Item(item)
+                    {
+                        entry = Entry,
+                        Quality = itQuality,
+                        RequiredLevel = pLevel,
+                        name = Name,
+                        description = Description,
+                        sItemLevel = ItemLevel,
+                        BuyPrice = BuyPrice,
+                        SellPrice = SellPrice,
+                        itemset = ItemSet,
+                        DisenchantID = DisenchantID
+                    };
 
                     ScaleItem(ref it, item);
-
-                    // itemset
-                    it.itemset = it.sItemLevel >= item.ItemLevel ? item.itemset : 0;
-
-                    // todo: socket scaling ?
-
-
-                    // Last step
                     it.Generate();
-                    item.wip_item_list.Add(it);
+
+                    itemlist.Add(it);
                 }
+                item.wip_item_list.Add(BonusQuality, itemlist);
             }
 
             //Work on writing item in files
-            UTF8Encoding UTF8NoPreamble = new UTF8Encoding(false);
-            using (StreamWriter outputFile = new StreamWriter(new FileStream(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "item_template", item.entry + ".sql"), FileMode.Create), UTF8NoPreamble))
+            foreach (KeyValuePair<int, List<Item>> entry in item.wip_item_list)
             {
-                Item last = item.wip_item_list.OrderBy(b => b.entry).Last();
-                outputFile.Write("REPLACE INTO item_template VALUES ");
+                int BonusUpgrade = entry.Key;
+                List<Item> list = entry.Value;
 
-                foreach (Item it in item.wip_item_list)
-                {
-                    outputFile.Write(it.ToString());
-                    if (it.Equals(last))
-                        outputFile.Write(";\n");
-                    else
-                        outputFile.Write(",\n");
-                }
+                if (list.Count == 0)
+                    continue;
 
-                if (item.enchantments_ori.Count > 0)
+                string filename = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "item_template", item.entry + ".sql");
+                using (StreamWriter outputFile = new StreamWriter(new FileStream(filename, BonusUpgrade == 0 ? FileMode.Create : FileMode.Append), UTF8NoPreamble))
                 {
-                    outputFile.Write("REPLACE INTO item_enchantment_template VALUES ");
-                    foreach (Item it in item.wip_item_list)
+                    Item first = list.OrderBy(b => b.entry).First();
+                    Item last = list.OrderBy(b => b.entry).Last();
+
+                    outputFile.Write("-- BonusUpgrade:" + BonusUpgrade + "\n");
+                    outputFile.Write("REPLACE INTO item_template VALUES ");
+
+                    foreach (Item it in list)
                     {
-                        foreach (Enchantment ench in it.enchantments_new)
-                        {
-                            Enchantment last_ench = it.enchantments_new.Last();
-                            if (it.Equals(last) && ench.Equals(last_ench))
-                                outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + ");\n");
-                            else
-                                outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + "),");
-                        }
-                    }
-                }
-
-                /* if (item.name_loc2 != null && item.description_loc2 != null)
-                {
-                    outputFile.Write("REPLACE INTO locales_item (entry,name_loc2,description_loc2) VALUES ");
-                    foreach (Item it in item.wip_item_list)
-                    {
-                        outputFile.Write("(" + it.entry + ",\"" + it.name_loc2 + "\",\"" + it.description_loc2 + "\")");
+                        outputFile.Write(it.Export());
                         if (it.Equals(last))
                             outputFile.Write(";\n");
                         else
-                            outputFile.Write(",");
+                            outputFile.Write(",\n");
                     }
-                } */
+
+                    if (item.enchantments_ori.Count > 0)
+                    {
+                        outputFile.Write("REPLACE INTO item_enchantment_template VALUES ");
+                        foreach (Item it in list)
+                        {
+                            foreach (Enchantment ench in it.enchantments_new)
+                            {
+                                Enchantment last_ench = it.enchantments_new.Last();
+                                if (it.Equals(last) && ench.Equals(last_ench))
+                                    outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + ");\n");
+                                else
+                                    outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + "),");
+                            }
+                        }
+                    }
+                }
             }
+
+            // memory leak ?
+            item.wip_item_list.Clear();
+            item.Dispose();
+
             Console.Write(".");
             threadcount--;
+
+            Thread.EndThreadAffinity();
         }
 
         public static int threadcount = 0;
@@ -2297,37 +2122,31 @@ namespace LootScaler
 
             IEnumerable<Item> subMylist = mylist.Where(a => (filter.Items.Count == 0) || (filter.Items.Count != 0 && filter.Items.Contains(a.entry)));
             Console.Write("Processing " + list_name + "_list...");
-            //Console.Write("Processing " + list_name + "_list (" + subMylist.Count() + ") at :" + StartDateTime.ToString());
 
             foreach (Item item in subMylist)
             {
                 while (threadcount >= maxThread)
-                    Thread.Sleep(1);
+                    Thread.Sleep(1000);
 
                 Thread newThread = new Thread(DoWork);
                 newThread.Start(item.entry);
 
                 if (garbageCollector)
+                {
                     GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
             }
 
             while (threadcount > 0)
-                Thread.Sleep(100);
+                Thread.Sleep(1000);
 
             Console.WriteLine();
-
-            /* DateTime EndDateTime = DateTime.Now;
-            Console.WriteLine("method end at :" + EndDateTime);
-
-            TimeSpan span = EndDateTime - StartDateTime;
-            int TS = (int)span.TotalMinutes;
-            Console.WriteLine("Time taken to generate the scaled data base :" + TS); */
         }
 
         private int GetEntryFilterValue()
         {
-            int value = 0;
-            int.TryParse(textBox1.Text, out value);
+            int.TryParse(textBox1.Text, out int value);
             return value;
         }
 
@@ -2352,6 +2171,11 @@ namespace LootScaler
                     textBox1.Text = "";
                 }
             }
+        }
+
+        private void checkUpgrade_CheckedChanged(object sender, EventArgs e)
+        {
+            numericUpDown1.Enabled = checkUpgrade.Checked;
         }
     }
 
@@ -2602,6 +2426,17 @@ namespace LootScaler
         WOW_PATCH_230 = 14,
         WOW_PATCH_240 = 15
     }
+
+    public enum ItemQualities
+    {
+        ITEM_QUALITY_POOR = 0,                 // GREY
+        ITEM_QUALITY_NORMAL = 1,                 // WHITE
+        ITEM_QUALITY_UNCOMMON = 2,                 // GREEN
+        ITEM_QUALITY_RARE = 3,                 // BLUE
+        ITEM_QUALITY_EPIC = 4,                 // PURPLE
+        ITEM_QUALITY_LEGENDARY = 5,                 // ORANGE
+        ITEM_QUALITY_ARTIFACT = 6                  // LIGHT YELLOW
+    };
 
     public enum Flagsenum
     {

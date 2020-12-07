@@ -1,16 +1,13 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 
 
 namespace LootScaler
 {
-   
+
     public class Spell
     {
         public int spellID;
@@ -131,7 +128,7 @@ namespace LootScaler
 
             if (bp >= ds && ds > 1)         // value range (x to y)
                 return (bp + (bp + ds)) / 2;
-            else if(bp >= ds && ds == 1)    // fixed value
+            else if (bp >= ds && ds == 1)    // fixed value
                 return (bp + ds);
             else if (bp == 0 && ds == 1)    // default
                 return ds;
@@ -156,7 +153,7 @@ namespace LootScaler
 
             return false;
         }
-		
+
         public void SetHandled()
         {
             List<string> handled = new List<string>() { "MP5", "HP5", "SPELLDMG", "HEAL", "ATTACKPWR", "ATTACKPWR_RANGED", "ATTACKPWR_FERAL", "DEFENSE", "ARMOR", "BLOCK", "PARRY", "DODGE", "CRIT", "SPELLCRIT", "HIT", "SPELLHIT", "SPELLPENETRATION", "WEAPONDAMAGE", "EXPERTISE", "ARMORPENETRATION" };
@@ -192,7 +189,7 @@ namespace LootScaler
                 connection.Open();
 
                 MySqlCommand cmd = new MySqlCommand("UPDATE tbcaowow.aowow_spell SET spelltype = '" + cat + "' WHERE spellID = " + this.spellID, connection);
-                MySqlDataReader dataReader = cmd.ExecuteReader();
+                cmd.ExecuteReader();
 
                 connection.Close();
 
@@ -202,7 +199,7 @@ namespace LootScaler
 
         private bool ReadIsType(string cat)
         {
-            if(spelltype != "")
+            if (spelltype != "")
                 return (spelltype == cat);
             return false;
         }
@@ -225,7 +222,7 @@ namespace LootScaler
                 matchc = Regex.Match(tooltip_loc0, @"^Restores.*.mana per.*.sec[.]$", RegexOptions.IgnoreCase).Success && effect1Amplitude == 5000;  //==5000 ???
                 matchd = Regex.Match(tooltip_loc0, @"^Restores.*.mana every.*.sec[.]$", RegexOptions.IgnoreCase).Success && effect1Amplitude == 5000; //==5000 ???
             }
-            else if(cat == "HP5")
+            else if (cat == "HP5")
             {
                 //IsHP5
                 matcha = Regex.Match(tooltip_loc0, @"^Restores.*.health every 5 sec[.]$", RegexOptions.IgnoreCase).Success; // Restores +[0-9]+ health every +[0-9]+ sec.
