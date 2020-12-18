@@ -1511,7 +1511,8 @@ namespace LootScaler
                     it.subclass = (int)ItemSubclassArmor.ITEM_SUBCLASS_ARMOR_MAIL;
 
                 if (it.subclass == (int)ItemSubclassArmor.ITEM_SUBCLASS_ARMOR_MAIL && it.ItemLevel <= 45 && it.sItemLevel >= 45)
-                    it.subclass = (int)ItemSubclassArmor.ITEM_SUBCLASS_ARMOR_PLATE;
+                    if (it.GetItemModValue(Item.ITEM_MOD_STRENGTH) != 0) // only if strength
+                        it.subclass = (int)ItemSubclassArmor.ITEM_SUBCLASS_ARMOR_PLATE;
             }
 
             // Doing work on armor
