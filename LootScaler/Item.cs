@@ -568,20 +568,20 @@ namespace LootScaler
                             setPStat(ITEM_MOD_INTELLECT, -1);
                             setPStat(ITEM_MOD_SPIRIT, -1);
                             setPStat(ITEM_MOD_STRENGTH, -1);
-                            setPStat(ITEM_MOD_HIT_MELEE_RATING, 1);
+                            setPStat(ITEM_MOD_HIT_RATING, 1);
                         } //cas P2
                         else if (AGI > 0 && h1 && STA == 0)
                         {
                             setPStat(ITEM_MOD_INTELLECT, -1);
                             setPStat(ITEM_MOD_SPIRIT, -1);
                             setPStat(ITEM_MOD_AGILITY, -1);
-                            setPStat(ITEM_MOD_CRIT_MELEE_RATING, 1);
+                            setPStat(ITEM_MOD_CRIT_RATING, 1);
                             if (GetSlotMod() != 5)
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                             else if (ItemLevel % 2 == 1)
-                                setPSpell("ATTACKPOWER_RANGED", 1);
+                                setPSpell("ATTACKPWR_RANGED", 1);
                             else
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
 
                         } //cas P3
                         else if (AGI > 0 && h2 && STA == 0 && STR > 0)
@@ -589,7 +589,7 @@ namespace LootScaler
                             setPStat(ITEM_MOD_INTELLECT, -1);
                             setPStat(ITEM_MOD_SPIRIT, -1);
                             setPStat(ITEM_MOD_AGILITY, 1);
-                            setPStat(ITEM_MOD_CRIT_MELEE_RATING, 1);
+                            setPStat(ITEM_MOD_CRIT_RATING, 1);
                         } //cas P4
                         else if (AGI > 0 && STR == 0 && STA >= AGI)
                         {
@@ -599,11 +599,11 @@ namespace LootScaler
                             {
                                 setPStat(ITEM_MOD_STAMINA, -1);
                                 if (GetSlotMod() != 5)
-                                    setPSpell("ATTACKPOWER", 1);
+                                    setPSpell("ATTACKPWR", 1);
                                 else if (ItemLevel % 2 == 0)
-                                    setPSpell("ATTACKPOWER_RANGED", 1);
+                                    setPSpell("ATTACKPWR_RANGED", 1);
                                 else
-                                    setPSpell("ATTACKPOWER", 1);
+                                    setPSpell("ATTACKPWR", 1);
                             }
                             else
                             {
@@ -626,9 +626,9 @@ namespace LootScaler
                             {
                                 setPStat(ITEM_MOD_STAMINA, -1);
                                 if (GetSlotMod() != 5)
-                                    setPSpell("ATTACKPOWER", 1);
+                                    setPSpell("ATTACKPWR", 1);
                                 else
-                                    setPSpell("ATTACKPOWER_RANGED", 1);
+                                    setPSpell("ATTACKPWR_RANGED", 1);
                             }
                             if (ArmorType == 4)
                             {
@@ -639,11 +639,11 @@ namespace LootScaler
                             {
                                 setPStat(ITEM_MOD_STAMINA, -1);
                                 if (GetSlotMod() != 5)
-                                    setPSpell("ATTACKPOWER", 1);
+                                    setPSpell("ATTACKPWR", 1);
                                 else if (ItemLevel % 2 == 1)
-                                    setPSpell("ATTACKPOWER_RANGED", 1);
+                                    setPSpell("ATTACKPWR_RANGED", 1);
                                 else
-                                    setPSpell("ATTACKPOWER", 1);
+                                    setPSpell("ATTACKPWR", 1);
                             }
                         } //cas P6
                         else if (AGI > STA && STR == 0 && STA > 0)
@@ -651,13 +651,13 @@ namespace LootScaler
                             setPStat(ITEM_MOD_INTELLECT, -1);
                             setPStat(ITEM_MOD_SPIRIT, -1);
                             setPStat(ITEM_MOD_AGILITY, -1);
-                            setPStat(ITEM_MOD_CRIT_MELEE_RATING, 1);
+                            setPStat(ITEM_MOD_CRIT_RATING, 1);
                         } //cas P7
                         else if (STR > STA && AGI == 0 && STA > 0)
                         {
                             setPStat(ITEM_MOD_INTELLECT, -1);
                             setPStat(ITEM_MOD_SPIRIT, -1);
-                            setPStat(ITEM_MOD_HIT_MELEE_RATING, 1);
+                            setPStat(ITEM_MOD_HIT_RATING, 1);
                         } //cas P8
                         else if ((ArmorType == 2 || ArmorType == 4) && STA >= Math.Max(AGI, STR) && STA > 0 && AGI > 0 & STR > 0)
                         {
@@ -673,13 +673,13 @@ namespace LootScaler
                             setPStat(ITEM_MOD_SPIRIT, -1);
                             setPStat(ITEM_MOD_STRENGTH, -1);
                             setPStat(ITEM_MOD_STAMINA, -1);
-                            setPStat(ITEM_MOD_HIT_MELEE_RATING, 1);
+                            setPStat(ITEM_MOD_HIT_RATING, 1);
                             if (GetSlotMod() != 5)
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                             else if (ItemLevel % 2 == 0)
-                                setPSpell("ATTACKPOWER_RANGED", 1);
+                                setPSpell("ATTACKPWR_RANGED", 1);
                             else
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                         } //cas P10
                         else if (h1 && STR > STA && STA > 0 && AGI > 0)
                         {
@@ -687,13 +687,13 @@ namespace LootScaler
                             setPStat(ITEM_MOD_SPIRIT, -1);
                             setPStat(ITEM_MOD_AGILITY, -1);
                             setPStat(ITEM_MOD_STAMINA, -1);
-                            setPStat(ITEM_MOD_HIT_MELEE_RATING, 1);
+                            setPStat(ITEM_MOD_HIT_RATING, 1);
                             if (GetSlotMod() != 5)
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                             else if (ItemLevel % 2 == 1)
-                                setPSpell("ATTACKPOWER_RANGED", 1);
+                                setPSpell("ATTACKPWR_RANGED", 1);
                             else
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                         } //cas P11
                         else if (ArmorType != 2 && ArmorType != 4 && STA >= Math.Max(AGI, STR) && STA > 0 && AGI > 0 && STR > 0)
                         {
@@ -702,15 +702,15 @@ namespace LootScaler
                             setPStat(ITEM_MOD_AGILITY, -1);
                             setPStat(ITEM_MOD_SPIRIT, -1);
                             setPStat(ITEM_MOD_STAMINA, -1);
-                            setPStat(ITEM_MOD_CRIT_MELEE_RATING, 1);
+                            setPStat(ITEM_MOD_CRIT_RATING, 1);
                             if (GetSlotMod() != 5)
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                             else if (ItemLevel % 2 == 0)
-                                setPSpell("ATTACKPOWER_RANGED", 1);
+                                setPSpell("ATTACKPWR_RANGED", 1);
                             else
                             {
-                                setPSpell("ATTACKPOWER", 1);
-                                setPStat(ITEM_MOD_CRIT_MELEE_RATING, 1);
+                                setPSpell("ATTACKPWR", 1);
+                                setPStat(ITEM_MOD_CRIT_RATING, 1);
                             }
                         } //cas P13
                         else if (h && Math.Min(STR, AGI) >= STA && STA > 0)
@@ -719,11 +719,11 @@ namespace LootScaler
                             setPStat(ITEM_MOD_SPIRIT, -1);
                             setPStat(ITEM_MOD_STAMINA, -1);
                             if (GetSlotMod() != 5)
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                             else if (ItemLevel % 2 == 1)
-                                setPSpell("ATTACKPOWER_RANGED", 1);
+                                setPSpell("ATTACKPWR_RANGED", 1);
                             else
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                         } //cas P14
                         else if (h && Math.Min(STR, AGI) >= STA && STA == 0)
                         {
@@ -733,11 +733,11 @@ namespace LootScaler
                             setPStat(ITEM_MOD_STRENGTH, -1);
                             setPStat(ITEM_MOD_AGILITY, -1);
                             if (GetSlotMod() != 5)
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                             else if (ItemLevel % 2 == 0)
-                                setPSpell("ATTACKPOWER_RANGED", 1);
+                                setPSpell("ATTACKPWR_RANGED", 1);
                             else
-                                setPSpell("ATTACKPOWER", 1);
+                                setPSpell("ATTACKPWR", 1);
                         } //cas P15 à ajouter
                     }
                 }
@@ -793,10 +793,10 @@ namespace LootScaler
                         setPStat(ITEM_MOD_INTELLECT, -1);
                         setPStat(ITEM_MOD_SPIRIT, -1);
                         setPStat(ITEM_MOD_STRENGTH, -1);
-                        setPSpell("ATTACKPOWER", 1);
+                        setPSpell("ATTACKPWR", 1);
                         if (Math.Max(SPI, Math.Max(STA, Math.Max(INT, STR))) == 0)
                             setPStat(ITEM_MOD_AGILITY, -1);
-                        // setPSpell("ATTACKPOWER", 0); // ???????????
+                        // setPSpell("ATTACKPWR", 0); // ???????????
                     }  //Cas Mi4 
                     else if (STR > Math.Max(SPI, Math.Max(STA, Math.Max(INT, AGI))))
                     {
@@ -805,9 +805,9 @@ namespace LootScaler
                         setPStat(ITEM_MOD_SPIRIT, -1);
                         setPStat(ITEM_MOD_AGILITY, -1);
                         if (GetSlotMod() != 5)
-                            setPSpell("ATTACKPOWER", 1);
+                            setPSpell("ATTACKPWR", 1);
                         else
-                            setPSpell("ATTACKPOWER_RANGED", 1);
+                            setPSpell("ATTACKPWR_RANGED", 1);
                         if (Math.Max(SPI, Math.Max(STA, Math.Max(INT, AGI))) == 0)
                             setPStat(ITEM_MOD_STRENGTH, -1);
                     }  //Cas Mi5 

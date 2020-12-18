@@ -1737,9 +1737,11 @@ namespace LootScaler
                         double MOD_WEIGHT;
                         switch (i)
                         {
+                            case Item.ITEM_MOD_CRIT_RATING: MOD_WEIGHT = 14; break;
                             case Item.ITEM_MOD_CRIT_MELEE_RATING: MOD_WEIGHT = 14; break;
                             case Item.ITEM_MOD_CRIT_RANGED_RATING: MOD_WEIGHT = 14; break;
                             case Item.ITEM_MOD_CRIT_SPELL_RATING: MOD_WEIGHT = 14; break;
+                            case Item.ITEM_MOD_HIT_RATING: MOD_WEIGHT = 10; break;
                             case Item.ITEM_MOD_HIT_MELEE_RATING: MOD_WEIGHT = 10; break;
                             case Item.ITEM_MOD_HIT_RANGED_RATING: MOD_WEIGHT = 10; break;
                             case Item.ITEM_MOD_HIT_SPELL_RATING: MOD_WEIGHT = 8; break;
@@ -1747,6 +1749,7 @@ namespace LootScaler
                             case Item.ITEM_MOD_PARRY_RATING: MOD_WEIGHT = 15; break;
                             case Item.ITEM_MOD_BLOCK_RATING: MOD_WEIGHT = 5; break;
                             case Item.ITEM_MOD_DODGE_RATING: MOD_WEIGHT = 12; break;
+                            case Item.ITEM_MOD_HASTE_RATING: MOD_WEIGHT = 10; break;
                             case Item.ITEM_MOD_HASTE_MELEE_RATING: MOD_WEIGHT = 10; break;
                             case Item.ITEM_MOD_HASTE_RANGED_RATING: MOD_WEIGHT = 10; break;
                             case Item.ITEM_MOD_HASTE_SPELL_RATING: MOD_WEIGHT = 10; break;
