@@ -971,8 +971,8 @@ namespace LootScaler
                 pathing_spell[i] = (item.pathing_spell[i]);
 
             // spell_shortlist = item.spell_shortlist;
-            foreach (var sp in item.spell_shortlist)
-                spell_shortlist.Add(sp.Key, sp.Value);
+            foreach (var sp in item.spell_masterlist)
+                spell_masterlist.Add(sp.Key, sp.Value);
         }
 
         public Item()
@@ -1431,7 +1431,7 @@ namespace LootScaler
             outputString += (")");
         }
 
-        public Dictionary<int, Spell> spell_shortlist = new Dictionary<int, Spell>();
+        public Dictionary<int, Dictionary<int, Spell>> spell_masterlist = new Dictionary<int, Dictionary<int, Spell>>();
 
         public bool SpellNameFilter(string SpellName)
         {
@@ -1513,9 +1513,10 @@ namespace LootScaler
 
         public void GenerateSpellShortList()
         {
-            spell_shortlist.Clear();
+            spell_masterlist.Clear();
             foreach (Spell mainspell in spells_ori.Where(a => a != null))
             {
+                Dictionary<int, Spell> spell_shortlist = new Dictionary<int, Spell>();
                 if (!mainspell.IsHandled() && !SpellNameExclude(mainspell.spellname_loc0) && !mainspell.HasTriggers())
                 {
                     List<Spell> newList = Form1.spell_list.Values.OrderBy(x => x.GetPoints()).ToList();
@@ -1542,12 +1543,14 @@ namespace LootScaler
                                                                                         if (mainspell.effect3MiscValue == s.effect3MiscValue)
                                                                                             if (mainspell.duration == s.duration)
                                                                                                 if (mainspell.schoolmask == s.schoolmask)
+                                                                                                    if(mainspell.effect1itemtype == s.effect1itemtype)
                                                                                                     // if ((mainspell.effect1triggerspell != 0 && s.effect1triggerspell != 0) || (mainspell.effect1triggerspell == 0 && s.effect1triggerspell == 0))
                                                                                                     // if ((mainspell.effect2triggerspell != 0 && s.effect2triggerspell != 0) || (mainspell.effect2triggerspell == 0 && s.effect2triggerspell == 0))
                                                                                                     // if ((mainspell.effect3triggerspell != 0 && s.effect3triggerspell != 0) || (mainspell.effect3triggerspell == 0 && s.effect3triggerspell == 0))
                                                                                                     spell_shortlist.Add(s.spellID, s);
                     }
                 }
+                spell_masterlist.Add(mainspell.spellID, spell_shortlist);
             }
         }
 

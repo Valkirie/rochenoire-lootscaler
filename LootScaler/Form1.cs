@@ -1398,7 +1398,7 @@ namespace LootScaler
                         Spell closest_spell = null;
 
                         if (lookup_spell.spelltrigger != 0)// On interdit le changement de spell pour les on-use spell.
-                            closest_spell = findSuitableSpell(it.spell_shortlist, lookup_spell, coeffR, ref closest_value);
+                            closest_spell = findSuitableSpell(it.spell_masterlist[lookup_spell.spellID], lookup_spell, coeffR, ref closest_value);
 
                         if (closest_spell == null)
                         {
