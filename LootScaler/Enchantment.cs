@@ -8,7 +8,7 @@ namespace LootScaler
         public int family;
         public double ilevel;
         public string name;
-        public List<double> value = new List<double>();
+        public double value;
         public double chance;
 
         public Enchantment()

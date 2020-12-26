@@ -200,18 +200,17 @@ namespace LootScaler
                 {
                     id = int.Parse(dataReader["id"].ToString()),
                     family = int.Parse(dataReader["type"].ToString()),
-                    name = dataReader["suffix"].ToString()
+                    name = dataReader["suffix"].ToString(),
+                    value = double.Parse(dataReader["value"].ToString())
                 };
-                ench.value.Add(double.Parse(dataReader["v_green"].ToString()));
-                ench.value.Add(double.Parse(dataReader["v_blue"].ToString()));
                 Enchantment_list.Add(ench.id, ench);
             }
 
             dataReader.Close();
 
-            Console.WriteLine("Loading aowow_itemenchantmet...");
+            Console.WriteLine("Loading aowow_spellitemenchantment...");
 
-            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_itemenchantmet LIMIT 999999", connection)
+            cmd = new MySqlCommand("SELECT * FROM tbcaowow.aowow_spellitemenchantment LIMIT 999999", connection)
             {
                 CommandTimeout = connectionTimeout
             };
@@ -221,9 +220,8 @@ namespace LootScaler
             {
                 socketBonus socket = new socketBonus
                 {
-                    id = int.Parse(dataReader["itemenchantmetID"].ToString()),
+                    id = int.Parse(dataReader["ID"].ToString()),
                     family = int.Parse(dataReader["familyID"].ToString()),
-                    text = dataReader["text"].ToString(),
                     value = double.Parse(dataReader["value"].ToString())
                 };
                 if (socket.value > 0)
@@ -754,22 +752,14 @@ namespace LootScaler
             }
         }
 
-        static double MAX_RPROPERTY_DIF = 0.15;
         private static void ScaleRandomProperty(ref Item item, double coeffR)
         {
-            double average_e = 0;
-
-            foreach (Enchantment e in item.enchantments_ori)
-                average_e += e.value[item.Quality <= (int)ItemQualities.ITEM_QUALITY_RARE ? 0 : 1];
-
-            double average_value = Math.Max((average_e / item.enchantments_ori.Count()) * coeffR, 1);
-
             foreach (Enchantment e in item.enchantments_ori)
             {
-                double current_e = e.value[item.Quality <= (int)ItemQualities.ITEM_QUALITY_RARE ? 0 : 1];
-                double current_value = Math.Max(current_e * coeffR, 1); // valeur recherchée
+                double current_e = e.value;
+                double current_value = current_e * coeffR; // valeur recherchée
 
-                double lookup_value = current_value < average_value ? average_value - (current_value * MAX_RPROPERTY_DIF) : average_value + (current_value * MAX_RPROPERTY_DIF);
+                double lookup_value = current_value;
 
                 double closest_diff = 99999;    // diff du dernier sort trouvé
                 double closest_value = 1;       // valeur du dernier sort trouvé
@@ -777,11 +767,11 @@ namespace LootScaler
 
                 foreach (Enchantment l in Enchantment_list.Values.Where(a => a.family == e.family))
                 {
-                    double l_value = l.value[item.Quality <= (int)ItemQualities.ITEM_QUALITY_RARE ? 0 : 1];
+                    double l_value = l.value;
                     double diff_value = Math.Abs(l_value - lookup_value);
                     double diff_test2 = diff_value / lookup_value;
 
-                    if ((l_value <= lookup_value && diff_value <= closest_diff) || diff_test2 <= MAX_RPROPERTY_DIF)
+                    if (diff_value <= closest_diff)//((l_value <= lookup_value && diff_value <= closest_diff) || diff_test2 <= MAX_RPROPERTY_DIF)
                     {
                         closest_value = l_value;
                         closest_diff = diff_value;

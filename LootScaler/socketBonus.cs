@@ -5,7 +5,6 @@
         public int id;
         public int family;
         public double value;
-        public string text;
 
         public socketBonus()
         {
@@ -15,7 +14,6 @@
         {
             id = socket.id;
             family = socket.family;
-            text = socket.text;
             value = socket.value;
         }
     }
