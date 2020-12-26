@@ -181,8 +181,17 @@ namespace LootScaler
                 spell_list.Add(mainspell.spellID, mainspell);
             }
 
+            // order spell_list on spell value
+            spell_list = spell_list.OrderBy(x => x.Value.GetPoints()).ToDictionary(x => x.Key, x => x.Value);
+
             foreach (Spell s in spell_list.Values)
+            {
                 s.SetHandled();
+                s.SetNegative();
+                s.SetPercent();
+                s.SetTest();
+                s.SetTrigger();
+            }
 
             dataReader.Close();
 
@@ -1377,17 +1386,17 @@ namespace LootScaler
         {
             foreach (Spell lookup_spell in it.spells_ori.Where(a => a != null))
             {
-                if (!lookup_spell.IsHandled())
+                if (!lookup_spell.isHandled && !lookup_spell.isPercent)
                 {
                     if (Math.Abs(coeffR - 1) > 0.03)  //Pas de changement de spell si coeffR est proche de 1.
                     {
-
                         double lookup_value = Math.Max(lookup_spell.GetPoints(), 1);
                         double closest_value = 1;
 
                         Spell closest_spell = null;
 
-                        if (lookup_spell.spelltrigger != 0)// On interdit le changement de spell pour les on-use spell.
+                        // On interdit le changement de spell pour les on-use spell.
+                        if (lookup_spell.spelltrigger != 0 && it.spell_masterlist.ContainsKey(lookup_spell.spellID))
                             closest_spell = findSuitableSpell(it.spell_masterlist[lookup_spell.spellID], lookup_spell, coeffR, ref closest_value);
 
                         if (closest_spell == null)
@@ -2621,7 +2630,7 @@ namespace LootScaler
         SPELL_AURA_PERIODIC_HEALTH_FUNNEL = 62,
         SPELL_AURA_PERIODIC_MANA_FUNNEL = 63,
         SPELL_AURA_PERIODIC_MANA_LEECH = 64,
-        SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK = 65,
+        SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK = 65, // PCT
         SPELL_AURA_FEIGN_DEATH = 66,
         SPELL_AURA_MOD_DISARM = 67,
         SPELL_AURA_MOD_STALKED = 68,
@@ -2694,9 +2703,9 @@ namespace LootScaler
         SPELL_AURA_MOD_HEALING_DONE = 135,
         SPELL_AURA_MOD_HEALING_DONE_PERCENT = 136,
         SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE = 137,
-        SPELL_AURA_MOD_MELEE_HASTE = 138,
+        SPELL_AURA_MOD_MELEE_HASTE = 138, // PCT
         SPELL_AURA_FORCE_REACTION = 139,
-        SPELL_AURA_MOD_RANGED_HASTE = 140,
+        SPELL_AURA_MOD_RANGED_HASTE = 140, // PCT
         SPELL_AURA_MOD_RANGED_AMMO_HASTE = 141,
         SPELL_AURA_MOD_BASE_RESISTANCE_PCT = 142,
         SPELL_AURA_MOD_RESISTANCE_EXCLUSIVE = 143,

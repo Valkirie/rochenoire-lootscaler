@@ -54,6 +54,10 @@ namespace LootScaler
         public SchoolMask schoolmask;
 
         public bool isHandled;
+        public bool isTest;
+        public bool isNegative;
+        public bool isPercent;
+        public bool isTrigger;
 
         public string spelltype;
 
@@ -114,6 +118,11 @@ namespace LootScaler
             spelltype = s.spelltype;
 
             isHandled = s.isHandled;
+            isTest = s.isTest;
+            isNegative = s.isNegative;
+            isPercent = s.isPercent;
+            isTrigger = s.isTrigger;
+
             schoolmask = s.schoolmask;
         }
 
@@ -169,14 +178,84 @@ namespace LootScaler
             }
         }
 
-        public bool IsHandled()
+        public void SetTest()
         {
-            return isHandled;
+            isTest = spellname_loc0.ToLower().Contains("zz") || spellname_loc0.ToLower().Contains("(old)");
         }
 
-        public bool HasTriggers()
+        public void SetNegative()
         {
-            return effect1triggerspell != 0 || effect2triggerspell != 0 || effect3triggerspell != 0;
+            isNegative = effect1BasePoints < -1000; // kek
+        }
+
+        static List<int> PCT_AURAS = new List<int>() {
+            (int)AuraType.SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK,
+            (int)AuraType.SPELL_AURA_MOD_MELEE_HASTE,
+            (int)AuraType.SPELL_AURA_MOD_RANGED_HASTE,
+            (int)AuraType.SPELL_AURA_MOD_POWER_COST_SCHOOL_PCT,
+            (int)AuraType.SPELL_AURA_SPLIT_DAMAGE_PCT,
+            (int)AuraType.SPELL_AURA_MOD_RESISTANCE_PCT,
+            (int)AuraType.SPELL_AURA_ADD_PCT_MODIFIER,
+            (int)AuraType.SPELL_AURA_MOD_RANGED_DAMAGE_TAKEN_PCT,
+            (int)AuraType.SPELL_AURA_MOD_HEALING_PCT,
+            (int)AuraType.SPELL_AURA_MOD_OFFHAND_DAMAGE_PCT,
+            (int)AuraType.SPELL_AURA_MOD_MELEE_DAMAGE_TAKEN_PCT,
+            (int)AuraType.SPELL_AURA_MOD_BASE_RESISTANCE_PCT,
+            (int)AuraType.SPELL_AURA_MOD_SHIELD_BLOCKVALUE_PCT,
+            (int)AuraType.SPELL_AURA_MOD_ATTACK_POWER_PCT,
+            (int)AuraType.SPELL_AURA_MOD_RANGED_ATTACK_POWER_PCT,
+            (int)AuraType.SPELL_AURA_MOD_INCREASES_SPELL_PCT_TO_HIT,
+            (int)AuraType.SPELL_AURA_MOD_XP_PCT,
+            (int)AuraType.SPELL_AURA_MOD_ATTACKSPEED,
+            (int)AuraType.SPELL_AURA_MOD_THREAT,
+            (int)AuraType.SPELL_AURA_MOD_PARRY_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_DODGE_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_BLOCK_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_CRIT_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_DAMAGE_PERCENT_DONE,
+            (int)AuraType.SPELL_AURA_MOD_PERCENT_STAT,
+            (int)AuraType.SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN,
+            (int)AuraType.SPELL_AURA_MOD_HEALTH_REGEN_PERCENT,
+            (int)AuraType.SPELL_AURA_PERIODIC_DAMAGE_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_POWER_REGEN_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_INCREASE_ENERGY_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_INCREASE_HEALTH_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_HEALING_DONE_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE,
+            (int)AuraType.SPELL_AURA_MOD_CRIT_PERCENT_VERSUS,
+            (int)AuraType.SPELL_AURA_MOD_SPELL_DAMAGE_OF_STAT_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_SPELL_HEALING_OF_STAT_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_RESISTANCE_OF_STAT_PERCENT,
+            (int)AuraType.SPELL_AURA_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT
+        };
+
+        public void SetPercent()
+        {
+            int auras = 0;
+            int count = 0;
+
+            if (effect1id == 6)
+            {
+                auras++;
+                if (PCT_AURAS.Contains(effect1Aura)) count++;
+                if (effect2id == 6)
+                {
+                    auras++;
+                    if (PCT_AURAS.Contains(effect2Aura)) count++;
+                    if (effect3id == 6)
+                    {
+                        auras++;
+                        if (PCT_AURAS.Contains(effect3Aura)) count++;
+                    }
+                }
+            }
+
+            isPercent = (auras > 0 && auras == count);
+        }
+
+        public void SetTrigger()
+        {
+            isTrigger = effect1triggerspell != 0 || effect2triggerspell != 0 || effect3triggerspell != 0;
         }
 
         private bool UpdateType(string cat)

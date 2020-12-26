@@ -1433,31 +1433,6 @@ namespace LootScaler
 
         public Dictionary<int, Dictionary<int, Spell>> spell_masterlist = new Dictionary<int, Dictionary<int, Spell>>();
 
-        public bool SpellNameFilter(string SpellName)
-        {
-            var SpellNameList = new List<string>() { "Firebolt", "Drain Life", "Shadow Bolt", "Wrath", "Rend","Fatal Wound", "Fireball",
-                                                     "Wound","Frostbolt","Shock", "Chain Lightning", "Lightning Bolt", "Frost Blast",
-                                                     "Siphon Health", "Puncture Armor", "Poison","Corruption", "Corrosive Poison", "Fade" , "Thunder Clap", "Holy Smite", "Poison Cloud" };
-
-            foreach (string Name in SpellNameList)
-                if (SpellName.ToLower() == Name.ToLower())
-                    return true;
-
-            return false;
-        }
-
-        public bool SpellNameExclude(string SpellName)
-        {
-            var SpellNameList = new List<string>() { "Stun", "Creeping Mold", "Silence", "Dispel Magic", "Thrash", "Strength of Stone", "Disarm" , "Dazed", "Haste", "Blaze", "Malown's Slam",
-                                                     "Electric Discharge", "Acid Blast", "Earthshaker", "Glimpse of Madness" };
-
-            foreach (string Name in SpellNameList)
-                if (SpellName.ToLower() == Name.ToLower())
-                    return true;
-
-            return false;
-        }
-
         public class RATING
         {
             public int Mode = -1;
@@ -1516,39 +1491,34 @@ namespace LootScaler
             spell_masterlist.Clear();
             foreach (Spell mainspell in spells_ori.Where(a => a != null))
             {
+                if (mainspell.isHandled || mainspell.isTrigger || mainspell.isTest || mainspell.isNegative || mainspell.isPercent)
+                    continue;
+
                 Dictionary<int, Spell> spell_shortlist = new Dictionary<int, Spell>();
-                if (!mainspell.IsHandled() && !SpellNameExclude(mainspell.spellname_loc0) && !mainspell.HasTriggers())
+                foreach (Spell s in Form1.spell_list.Values)
                 {
-                    List<Spell> newList = Form1.spell_list.Values.OrderBy(x => x.GetPoints()).ToList();
-                    foreach (Spell s in newList.Where(a => !a.spellname_loc0.ToLower().Contains("zz")))
-                    {
-                        if (!spell_shortlist.ContainsKey(s.spellID))
-                            if ((SpellNameFilter(mainspell.spellname_loc0) && mainspell.spellname_loc0.ToLower() == s.spellname_loc0.ToLower()) || !SpellNameFilter(mainspell.spellname_loc0))  //filtre suivant ce nom de sort uniquement si dans la liste des sorts définies dans SpellNameFilter
-                                if (mainspell.effect1Aura == s.effect1Aura)
-                                    if (mainspell.effect2Aura == s.effect2Aura)
-                                        if (mainspell.effect3Aura == s.effect3Aura)
-                                            if (mainspell.effect1id == s.effect1id)
-                                                if (mainspell.effect2id == s.effect2id)
-                                                    if (mainspell.effect3id == s.effect3id)
-                                                        if (mainspell.rangeID == s.rangeID)
-                                                            if (mainspell.resistancesID == s.resistancesID)
-                                                                if (mainspell.effect1ChainTarget == s.effect1ChainTarget)
-                                                                    if (mainspell.effect2ChainTarget == s.effect2ChainTarget)
-                                                                        if (mainspell.effect3ChainTarget == s.effect3ChainTarget)
-                                                                            // if (mainspell.cooldown == s.cooldown)
-                                                                            // if (mainspell.manacost == s.manacost)
-                                                                            if (mainspell.mechanicID == s.mechanicID)
-                                                                                if (mainspell.effect1MiscValue == s.effect1MiscValue)
-                                                                                    if (mainspell.effect2MiscValue == s.effect2MiscValue)
-                                                                                        if (mainspell.effect3MiscValue == s.effect3MiscValue)
-                                                                                            if (mainspell.duration == s.duration)
-                                                                                                if (mainspell.schoolmask == s.schoolmask)
-                                                                                                    if(mainspell.effect1itemtype == s.effect1itemtype)
-                                                                                                    // if ((mainspell.effect1triggerspell != 0 && s.effect1triggerspell != 0) || (mainspell.effect1triggerspell == 0 && s.effect1triggerspell == 0))
-                                                                                                    // if ((mainspell.effect2triggerspell != 0 && s.effect2triggerspell != 0) || (mainspell.effect2triggerspell == 0 && s.effect2triggerspell == 0))
-                                                                                                    // if ((mainspell.effect3triggerspell != 0 && s.effect3triggerspell != 0) || (mainspell.effect3triggerspell == 0 && s.effect3triggerspell == 0))
-                                                                                                    spell_shortlist.Add(s.spellID, s);
-                    }
+                    if (!spell_shortlist.ContainsKey(s.spellID))
+                        if (mainspell.effect1Aura == s.effect1Aura)
+                            if (mainspell.effect2Aura == s.effect2Aura)
+                                if (mainspell.effect3Aura == s.effect3Aura)
+                                    if (mainspell.effect1id == s.effect1id)
+                                        if (mainspell.effect2id == s.effect2id)
+                                            if (mainspell.effect3id == s.effect3id)
+                                                if (mainspell.rangeID == s.rangeID)
+                                                    if (mainspell.resistancesID == s.resistancesID)
+                                                        if (mainspell.effect1ChainTarget == s.effect1ChainTarget)
+                                                            if (mainspell.effect2ChainTarget == s.effect2ChainTarget)
+                                                                if (mainspell.effect3ChainTarget == s.effect3ChainTarget)
+                                                                    // if (mainspell.cooldown == s.cooldown)
+                                                                    // if (mainspell.manacost == s.manacost)
+                                                                    if (mainspell.mechanicID == s.mechanicID)
+                                                                        if (mainspell.effect1MiscValue == s.effect1MiscValue)
+                                                                            if (mainspell.effect2MiscValue == s.effect2MiscValue)
+                                                                                if (mainspell.effect3MiscValue == s.effect3MiscValue)
+                                                                                    if (mainspell.duration == s.duration)
+                                                                                        if (mainspell.schoolmask == s.schoolmask)
+                                                                                            if (mainspell.effect1itemtype == s.effect1itemtype)
+                                                                                                spell_shortlist.Add(s.spellID, s);
                 }
                 spell_masterlist.Add(mainspell.spellID, spell_shortlist);
             }
