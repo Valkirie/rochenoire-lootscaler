@@ -514,41 +514,6 @@ namespace LootScaler
                 generateDBC();
             if (checkQUEST.Checked)
                 generateQuest();
-
-            CLEAN();
-        }
-
-        private void CLEAN()
-        {
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "099_clean.sql")))
-            {
-                if (true)
-                {
-                    outputFile.WriteLine("-- CLEANING THE DATABASE");
-
-                    if (weapCheck.Checked)
-                    {
-                        outputFile.WriteLine("DELETE FROM scale_loot;");
-                        outputFile.WriteLine("DELETE FROM item_template WHERE entry > " + MIN_ENTRY_SCALE + ";");
-                        outputFile.WriteLine("DELETE FROM locales_item WHERE entry > " + MIN_ENTRY_SCALE + ";");
-                        outputFile.WriteLine("DELETE FROM item_enchantment_template WHERE entry > " + MIN_ENTRY_SCALE + ";");
-                    }
-
-                    if (consuCheck.Checked)
-                    {
-                        outputFile.WriteLine("");
-                        outputFile.Write("DELETE FROM scale_loot WHERE entry IN (");
-                        foreach (Item it in consumables_list)
-                        {
-                            outputFile.Write(it.entry);
-                            if (it != consumables_list.Last())
-                                outputFile.Write(",");
-                        }
-                        outputFile.Write(");");
-                    }
-                    outputFile.WriteLine();
-                }
-            }
         }
 
         public bool ContainsAny(string haystack, string[] needles)
@@ -682,6 +647,7 @@ namespace LootScaler
 
             using (StreamWriter outputFile = new StreamWriter(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "out", "099_food.sql")))
             {
+                outputFile.WriteLine("DELETE FROM scale_loot;");
                 foreach (Item it in item_list.Values)
                 {
                     if (consumables_list.Contains(it) && it.ItemLevel > 0 && ((filter.Items.Count == 0) || filter.Items.Count != 0 && filter.Items.Contains(it.entry)))
@@ -2082,6 +2048,26 @@ namespace LootScaler
                     Item last = list.OrderBy(b => b.entry).Last();
 
                     outputFile.Write("-- BonusUpgrade:" + BonusUpgrade + "\n");
+
+                    outputFile.Write("DELETE FROM item_template WHERE entry IN (");
+                    foreach (Item it in list)
+                    {
+                        outputFile.Write(it.entry);
+                        if (it.Equals(last))
+                            outputFile.Write(");\n");
+                        else
+                            outputFile.Write(",");
+                    }
+                    outputFile.Write("DELETE FROM item_enchantment_template WHERE entry IN (");
+                    foreach (Item it in list)
+                    {
+                        outputFile.Write(it.entry);
+                        if (it.Equals(last))
+                            outputFile.Write(");\n");
+                        else
+                            outputFile.Write(",");
+                    }
+
                     outputFile.Write("REPLACE INTO item_template VALUES ");
 
                     foreach (Item it in list)
