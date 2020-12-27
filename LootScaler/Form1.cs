@@ -729,6 +729,7 @@ namespace LootScaler
         }
 
         static double MAX_SOCKET_DIF = 0.10;
+        static double MAX_RPROPERTY_DIF = 0.10;
         private static void ScaleSocketBonus(ref Item item, double coeffR)
         {
             socketBonus current_socket = item.socketBonus;
@@ -737,13 +738,14 @@ namespace LootScaler
                 return;
 
             double s_current = current_socket.value;
-            double lookup_value = Math.Max(s_current * coeffR, 1); // valeur recherchée
+            double lookup_value = Math.Round(s_current * coeffR, 1); // valeur recherchée
 
             double closest_diff = 99999;    // diff du dernier sort trouvé
             double closest_value = 1;       // valeur du dernier sort trouvé
             socketBonus closest_socket = new socketBonus();
 
-            foreach (socketBonus s in socketBonus_list.Values.Where(a => a.family == current_socket.family))
+            List<socketBonus> socketList = socketBonus_list.Values.Where(a => a.family == current_socket.family).ToList();
+            foreach (socketBonus s in socketList)
             {
                 double s_value = s.value;
                 double diff_value = Math.Abs(s_value - lookup_value);
@@ -755,10 +757,10 @@ namespace LootScaler
                     closest_diff = diff_value;
                     closest_socket = new socketBonus(s);
                 }
-
-                if (closest_socket.id != 0)
-                    item.socketBonus_new = closest_socket;
             }
+
+            if (closest_socket.id != 0)
+                item.socketBonus_new = closest_socket;
         }
 
         private static void ScaleRandomProperty(ref Item item, double coeffR)
@@ -766,7 +768,7 @@ namespace LootScaler
             foreach (Enchantment e in item.enchantments_ori)
             {
                 double current_e = e.value;
-                double current_value = current_e * coeffR; // valeur recherchée
+                double current_value = Math.Round(current_e * coeffR, 1); // valeur recherchée
 
                 double lookup_value = current_value;
 
@@ -774,13 +776,14 @@ namespace LootScaler
                 double closest_value = 1;       // valeur du dernier sort trouvé
                 Enchantment closest_ench = new Enchantment();
 
-                foreach (Enchantment l in Enchantment_list.Values.Where(a => a.family == e.family))
+                List<Enchantment> enchantmentList = Enchantment_list.Values.Where(a => a.family == e.family).ToList();
+                foreach (Enchantment l in enchantmentList)
                 {
                     double l_value = l.value;
                     double diff_value = Math.Abs(l_value - lookup_value);
                     double diff_test2 = diff_value / lookup_value;
 
-                    if (diff_value <= closest_diff)//((l_value <= lookup_value && diff_value <= closest_diff) || diff_test2 <= MAX_RPROPERTY_DIF)
+                    if ((l_value <= lookup_value && diff_value <= closest_diff) || diff_test2 <= MAX_RPROPERTY_DIF)
                     {
                         closest_value = l_value;
                         closest_diff = diff_value;
@@ -2095,13 +2098,16 @@ namespace LootScaler
                         outputFile.Write("REPLACE INTO item_enchantment_template VALUES ");
                         foreach (Item it in list)
                         {
-                            foreach (Enchantment ench in it.enchantments_new)
+                            if (it.enchantments_new.Count != 0)
                             {
                                 Enchantment last_ench = it.enchantments_new.Last();
-                                if (it.Equals(last) && ench.Equals(last_ench))
-                                    outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + ");\n");
-                                else
-                                    outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + "),");
+                                foreach (Enchantment ench in it.enchantments_new)
+                                {
+                                    if (it.Equals(last) && ench.Equals(last_ench))
+                                        outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + "," + ench.family + ");\n");
+                                    else
+                                        outputFile.Write("(" + it.entry + "," + ench.id + "," + ench.chance + "," + ench.family + "),");
+                                }
                             }
                         }
                     }
